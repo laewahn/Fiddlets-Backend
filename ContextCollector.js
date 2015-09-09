@@ -40,25 +40,25 @@
 						collector.setLocationForVariableName(declaration.id.name, declaration.loc);
 
 						if (declaration.init !== null) {
-							evaluateExpressionStatement(declaration.init, collector);
+							this._evaluateExpressionStatement(declaration.init, collector);
 						}
-					});
+					}, this);
 					break;
 				case "FunctionDeclaration" :					
 					collector.setLocationForVariableName(line.id.name, line.loc);
 					break;
 				case "ExpressionStatement" :
-					evaluateExpressionStatement(line.expression, collector);
+					this._evaluateExpressionStatement(line.expression, collector);
 					break;
 				case "IfStatement" :
-					evaluateExpressionStatement(line.test, collector);
+					this._evaluateExpressionStatement(line.test, collector);
 					break;
 				default:
 					if (debug) {
 						console.error("Token not supported: " + line.type);	
 					}
 			}
-		});
+		}, this);
 	};
 
 	ASTApi.prototype._evaluateExpressionStatement = function(expression, collector) {
@@ -68,32 +68,32 @@
 
 		switch(expression.type) {
 			case "AssignmentExpression" :
-				evaluateExpressionStatement(expression.left, collector);
-				evaluateExpressionStatement(expression.right, collector);
+				this._evaluateExpressionStatement(expression.left, collector);
+				this._evaluateExpressionStatement(expression.right, collector);
 				break;
 			case "CallExpression" :
 				expression.arguments.forEach(function(argument) {
-					evaluateExpressionStatement(argument, collector);
-				});
+					this._evaluateExpressionStatement(argument, collector);
+				}, this);
 
-				evaluateExpressionStatement(expression.callee, collector);
+				this._evaluateExpressionStatement(expression.callee, collector);
 				break;
 			case "MemberExpression" :
-				evaluateExpressionStatement(expression.object, collector);
+				this._evaluateExpressionStatement(expression.object, collector);
 				break;
 			case "FunctionExpression" :
 				expression.params.forEach(function(param) {
-					evaluateExpressionStatement(param, collector);
-				});
+					this._evaluateExpressionStatement(param, collector);
+				}, this);
 				break;
 			case "BinaryExpression" :
-				evaluateExpressionStatement(expression.right, collector);
-				evaluateExpressionStatement(expression.left, collector);
+				this._evaluateExpressionStatement(expression.right, collector);
+				this._evaluateExpressionStatement(expression.left, collector);
 				break;
 			case "ConditionalExpression" :
-				evaluateExpressionStatement(expression.test, collector);
-				evaluateExpressionStatement(expression.consequent, collector);
-				evaluateExpressionStatement(expression.alternate, collector);
+				this._evaluateExpressionStatement(expression.test, collector);
+				this._evaluateExpressionStatement(expression.consequent, collector);
+				this._evaluateExpressionStatement(expression.alternate, collector);
 				break;
 			case "Identifier" :
 				collector.setLocationForVariableName(expression.name, expression.loc);
@@ -104,80 +104,6 @@
 				}
 		}
 	};
-
-	function traceBody(body, context) {
-		body.forEach(function(line) {
-			// console.log(JSON.stringify(line, null, 2));
-			switch(line.type) {
-				case "VariableDeclaration" :
-					line.declarations.forEach(function(declaration) {
-						context.setLocationForVariableName(declaration.id.name, declaration.loc);
-
-						if (declaration.init !== null) {
-							evaluateExpressionStatement(declaration.init, context);
-						}
-					});
-					break;
-				case "FunctionDeclaration" :					
-					context.setLocationForVariableName(line.id.name, line.loc);
-					break;
-				case "ExpressionStatement" :
-					evaluateExpressionStatement(line.expression, context);
-					break;
-				case "IfStatement" :
-					evaluateExpressionStatement(line.test, context);
-					break;
-				default:
-					if (debug) {
-						console.error("Token not supported: " + line.type);	
-					}
-			}
-		});
-	}
-
-	function evaluateExpressionStatement(expression, context) {
-		if (context === null) {
-			throw "!!!You forgot to pass over the context!!!";
-		}
-
-		switch(expression.type) {
-			case "AssignmentExpression" :
-				evaluateExpressionStatement(expression.left, context);
-				evaluateExpressionStatement(expression.right, context);
-				break;
-			case "CallExpression" :
-				expression.arguments.forEach(function(argument) {
-					evaluateExpressionStatement(argument, context);
-				});
-
-				evaluateExpressionStatement(expression.callee, context);
-				break;
-			case "MemberExpression" :
-				evaluateExpressionStatement(expression.object, context);
-				break;
-			case "FunctionExpression" :
-				expression.params.forEach(function(param) {
-					evaluateExpressionStatement(param, context);
-				});
-				break;
-			case "BinaryExpression" :
-				evaluateExpressionStatement(expression.right, context);
-				evaluateExpressionStatement(expression.left, context);
-				break;
-			case "ConditionalExpression" :
-				evaluateExpressionStatement(expression.test, context);
-				evaluateExpressionStatement(expression.consequent, context);
-				evaluateExpressionStatement(expression.alternate, context);
-				break;
-			case "Identifier" :
-				context.setLocationForVariableName(expression.name, expression.loc);
-				break;
-			default:
-				if (debug) {
-					console.log("No handling of " + expression.type);	
-				}
-		}
-	}
 
 	function Context() {
 		this.contextMapping = {};
