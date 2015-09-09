@@ -56,17 +56,33 @@
 
 	ASTApi.prototype._traceBody = function(body, collector) {
 		body.forEach(function(line) {
-			var visitor = this.visitors[line.type];
-
-			if (visitor !== undefined) {
-				visitor(line, collector, function() {
-					this._defaultTraceLineBehaviour(line, this.collector);
-				}.bind(this));
-			} else {
-				this._defaultTraceLineBehaviour(line, this.collector);
-			}
+			this._callVisitorWithDefaultBehaviorForElement(line, collector, this._defaultTraceLineBehaviour.bind(this));
 		}, this);
 	};
+
+	ASTApi.prototype._evaluateExpressionStatement = function(expression, collector) {
+		var visitor = this.visitors[expression.type];
+
+		if (visitor !== undefined) {
+			visitor(expression, collector, function() {
+				this._defaultExpressionBehaviour(expression, this.collector);
+			}.bind(this));
+		} else {
+			this._defaultExpressionBehaviour(expression, this.collector);
+		}
+
+		this._defaultExpressionBehaviour(expression, collector);
+	};
+
+	ASTApi.prototype._callVisitorWithDefaultBehaviorForElement = function(element, collector, defaultBehaviour) {
+		var visitor = this.visitors[element.type];
+
+		var defaultWrapper = function() {
+			defaultBehaviour(element, this.collector);
+		}.bind(this);
+		
+		visitor ? visitor(element, collector, defaultWrapper) : defaultBehaviour(element, this.collector)
+	}
 
 	ASTApi.prototype._defaultTraceLineBehaviour = function(line, collector) {
 		switch(line.type) {
@@ -91,20 +107,6 @@
 					console.error("Token not supported: " + line.type);	
 				}
 		}
-	};
-
-	ASTApi.prototype._evaluateExpressionStatement = function(expression, collector) {
-		var visitor = this.visitors[expression.type];
-
-		if (visitor !== undefined) {
-			visitor(expression, collector, function() {
-				this._defaultExpressionBehaviour(expression, this.collector);
-			}.bind(this));
-		} else {
-			this._defaultExpressionBehaviour(expression, this.collector);
-		}
-
-		this._defaultExpressionBehaviour(expression, collector);
 	};
 
 	ASTApi.prototype._defaultExpressionBehaviour = function(expression, collector) {
