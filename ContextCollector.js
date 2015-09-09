@@ -16,7 +16,7 @@
 
 		var contextCollector = new ASTApi(ast, new Context());
 
-		contextCollector.setVisitorForType("VariableDeclaration", function(line, collector, defaultBehaviour) {
+		contextCollector.on("VariableDeclaration", function(line, collector, defaultBehaviour) {
 			line.declarations.forEach(function(declaration) {
 				collector.setLocationForVariableName(declaration.id.name, declaration.loc);
 			});
@@ -24,12 +24,12 @@
 			defaultBehaviour();
 		});
 		
-		contextCollector.setVisitorForType("Identifier", function(identifier, collector, defaultBehaviour) {
+		contextCollector.on("Identifier", function(identifier, collector, defaultBehaviour) {
 			collector.setLocationForVariableName(identifier.name, identifier.loc);
 			defaultBehaviour();
 		});
 
-		contextCollector.setVisitorForType("FunctionDeclaration", function(functionExpression, collector, defaultBehaviour) {
+		contextCollector.on("FunctionDeclaration", function(functionExpression, collector, defaultBehaviour) {
 			collector.setLocationForVariableName(functionExpression.id.name, functionExpression.loc);
 			defaultBehaviour();
 		});
@@ -118,7 +118,7 @@
 		};
 	};
 
-	ASTApi.prototype.setVisitorForType = function(type, visitor) {
+	ASTApi.prototype.on = function(type, visitor) {
 		this.visitors[type] = visitor;
 	};
 
