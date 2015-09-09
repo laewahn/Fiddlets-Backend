@@ -74,6 +74,40 @@
 			"IfStatement": function(line) {
 				this._evaluateExpressionStatement(line.test);
 				// TODO: evaluate the whole block for consequence and alternate
+			},
+
+			"AssignmentExpression" : function(expression) {
+				this._evaluateExpressionStatement(expression.left);
+				this._evaluateExpressionStatement(expression.right);
+			},
+
+			"CallExpression" : function(expression) {
+				expression.arguments.forEach(function(argument) {
+					this._evaluateExpressionStatement(argument);
+				}, this);
+
+				this._evaluateExpressionStatement(expression.callee);
+			},
+
+			"MemberExpression" : function(expression) {
+				this._evaluateExpressionStatement(expression.object);
+			},
+
+			"FunctionExpression" : function(expression) {
+				expression.params.forEach(function(param) {
+					this._evaluateExpressionStatement(param);
+				}, this);
+			},
+
+			"BinaryExpression" : function(expression) {
+				this._evaluateExpressionStatement(expression.right);
+				this._evaluateExpressionStatement(expression.left);
+			},
+			
+			"ConditionalExpression" : function(expression) {
+				this._evaluateExpressionStatement(expression.test);
+				this._evaluateExpressionStatement(expression.consequent);
+				this._evaluateExpressionStatement(expression.alternate);
 			}
 		};
 	};
@@ -98,13 +132,13 @@
 			if (defaultVisitor !== undefined) {
 				this._callVisitorWithDefaultBehaviorForElement(token, defaultVisitor.bind(this));
 			}
-			// else {
-			// 	this._callVisitorWithDefaultBehaviorForElement(token, this._defaultTraceLineBehaviour.bind(this));
-			// }
-	} 
+			else {
+				this._callVisitorWithDefaultBehaviorForElement(token, this._defaultExpressionBehaviour.bind(this));
+			}
+	};
 
 	ASTApi.prototype._evaluateExpressionStatement = function(expression) {
-		this._callVisitorWithDefaultBehaviorForElement(expression, this._defaultExpressionBehaviour.bind(this));
+		this._traceToken(expression);
 	};
 
 	ASTApi.prototype._callVisitorWithDefaultBehaviorForElement = function(element, defaultBehaviour) {
@@ -131,34 +165,6 @@
 
 	ASTApi.prototype._defaultExpressionBehaviour = function(expression) {
 		switch(expression.type) {
-			case "AssignmentExpression" :
-				this._evaluateExpressionStatement(expression.left);
-				this._evaluateExpressionStatement(expression.right);
-				break;
-			case "CallExpression" :
-				expression.arguments.forEach(function(argument) {
-					this._evaluateExpressionStatement(argument);
-				}, this);
-
-				this._evaluateExpressionStatement(expression.callee);
-				break;
-			case "MemberExpression" :
-				this._evaluateExpressionStatement(expression.object);
-				break;
-			case "FunctionExpression" :
-				expression.params.forEach(function(param) {
-					this._evaluateExpressionStatement(param);
-				}, this);
-				break;
-			case "BinaryExpression" :
-				this._evaluateExpressionStatement(expression.right);
-				this._evaluateExpressionStatement(expression.left);
-				break;
-			case "ConditionalExpression" :
-				this._evaluateExpressionStatement(expression.test);
-				this._evaluateExpressionStatement(expression.consequent);
-				this._evaluateExpressionStatement(expression.alternate);
-				break;
 			default:
 				if (this.debug) {
 					console.log("No handling of " + expression.type);	
