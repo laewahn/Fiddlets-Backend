@@ -9,10 +9,10 @@
 	exports.getContextFor = function (source) {
 		var ast = esprima.parse(source, {loc: true});
 
-		var contextMapping = {};
-		traceBody(ast.body, contextMapping);
+		var context = new Context({});
+		traceBody(ast.body, context);
 
-		return new Context(contextMapping);
+		return context;
 	};
 
 	function traceBody(body, context) {
@@ -23,25 +23,19 @@
 					line.declarations.forEach(function(declaration) {
 						var variableName = declaration.id.name;
 						var variableLocation = declaration.loc;
-
-						if (context[variableName] === undefined) {
-							context[variableName] = [];
-						}
-
+						
 						if (declaration.init !== null) {
 							evaluateExpressionStatement(declaration.init, context);
 						}
-						context[variableName].push(variableLocation);
+
+						context.setLocationForVariableName(variableName, variableLocation);
 					});
 					break;
 				case "FunctionDeclaration" :
 					var variableName = line.id.name;
 					var variableLocation = line.loc;
-					if (context[variableName] === undefined) {
-						context[variableName] = [];
-					}
-
-					context[variableName].push(variableLocation);
+					
+					context.setLocationForVariableName(variableName, variableLocation);
 					break;
 				case "ExpressionStatement" :
 					evaluateExpressionStatement(line.expression, context);
@@ -74,14 +68,9 @@
 				break;
 			case "Identifier" :
 				var variableName = expression.name;
-
 				var expressionLocation = expression.loc;
 
-				if (context[variableName] === undefined) {
-					context[variableName] = [];
-				}
-
-				context[variableName].push(expressionLocation);
+				context.setLocationForVariableName(variableName, expressionLocation);
 				break;
 			default:
 				// console.log("No handling of " + expression.type);
@@ -99,12 +88,12 @@
 		return this.contextMapping[variableName];
 	};
 
-	Context.prototype.setLocationFor(variableName, location) {
-		if (contextMapping[variableName] === undefined) {
-			contextMapping[variableName] = [];
+	Context.prototype.setLocationForVariableName = function(variableName, location) {
+		if (this.contextMapping[variableName] === undefined) {
+			this.contextMapping[variableName] = [];
 		}
 
-		contextMapping[variableName].push(location);
-	}
+		this.contextMapping[variableName].push(location);
+	};
 
 })();

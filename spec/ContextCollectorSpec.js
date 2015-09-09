@@ -85,7 +85,7 @@ describe("The context collector API", function() {
 			expect(testContext.linesFor("prependFoo").some(function(line) {
 				return line.start.line === 20 && line.end.line === 22;
 			})).toBe(true);
-		})
+		});
 
 	});
 
