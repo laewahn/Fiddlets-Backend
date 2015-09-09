@@ -22,3 +22,4 @@ function prependFoo(value) {
 }
 
 howMany = secondInSameLine;
+someValue = index ? bla : y;

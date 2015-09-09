@@ -77,13 +77,30 @@ describe("The context collector API", function() {
 			})).toBe(true);
 		});
 
-		it("should return where a variable was used in an operation", function() {
+		it("should return where a variable was used in an operator", function() {
+			// Binary operator
 			expect(testContext.linesFor("y").some(function(line) {
 				return line.start.line === 3;
 			})).toBe(true);
 
 			expect(testContext.linesFor("secondInSameLine").some(function(line) {
 				return line.start.line === 3;
+			})).toBe(true);
+
+			// contextCollectAPI.setDebug(true);
+			testContext = contextCollectAPI.getContextFor(testSource);
+
+			// Ternary operator
+			expect(testContext.linesFor("index").some(function(line) {
+				return line.start.line === 25;
+			})).toBe(true);
+
+			expect(testContext.linesFor("bla").some(function(line) {
+				return line.start.line === 25;
+			})).toBe(true);
+
+			expect(testContext.linesFor("y").some(function(line) {
+				return line.start.line === 25;
 			})).toBe(true);
 		});
 

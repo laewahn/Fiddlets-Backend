@@ -5,6 +5,11 @@
 	"use strict";
 
 	var esprima = require("esprima");
+	var debug = false;
+
+	exports.setDebug = function(debugFlag) {
+		debug = debugFlag;
+	}
 
 	exports.getContextFor = function (source) {
 		var ast = esprima.parse(source, {loc: true});
@@ -35,7 +40,9 @@
 					evaluateExpressionStatement(line.expression, context);
 					break;
 				default:
-					// console.error("Token not supported: " + line.type);
+					if (debug) {
+						console.error("Token not supported: " + line.type);	
+					}
 			}
 		});
 	}
@@ -69,11 +76,18 @@
 				evaluateExpressionStatement(expression.right, context);
 				evaluateExpressionStatement(expression.left, context);
 				break;
+			case "ConditionalExpression" :
+				evaluateExpressionStatement(expression.test, context);
+				evaluateExpressionStatement(expression.consequent, context);
+				evaluateExpressionStatement(expression.alternate, context);
+				break;
 			case "Identifier" :
 				context.setLocationForVariableName(expression.name, expression.loc);
 				break;
 			default:
-				// console.log("No handling of " + expression.type);
+				if (debug) {
+					console.log("No handling of " + expression.type);	
+				}
 		}
 	}
 
