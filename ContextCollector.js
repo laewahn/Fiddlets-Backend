@@ -9,7 +9,7 @@
 	exports.getContextFor = function (source) {
 		var ast = esprima.parse(source, {loc: true});
 
-		var context = new Context({});
+		var context = new Context();
 		traceBody(ast.body, context);
 
 		return context;
@@ -68,8 +68,8 @@
 		}
 	}
 
-	function Context(contextMapping) {
-		this.contextMapping = contextMapping;
+	function Context() {
+		this.contextMapping = {};
 	}
 
 	Context.prototype.constructor = Context;
