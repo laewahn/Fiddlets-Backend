@@ -48,10 +48,34 @@
 	ASTApi.prototype.ast = undefined;
 	ASTApi.prototype.collector = undefined;
 	ASTApi.prototype.visitors = undefined;
+	ASTApi.prototype.defaultVisitors = undefined;
 	ASTApi.prototype.debug = false;
 
 	ASTApi.prototype.setDebug = function(debug) {
 		this.debug = debug;
+
+		this.defaultVisitors = {
+			"VariableDeclaration" : function(line) {
+				line.declarations.forEach(function(declaration) {
+					if (declaration.init !== null) {
+						this._evaluateExpressionStatement(declaration.init);
+					}
+				}, this);
+			},
+
+			"FunctionDeclaration" : function() {
+				// TODO: Probably scan the body of the function here.
+			},
+
+			"ExpressionStatement": function(line) {
+				this._evaluateExpressionStatement(line.expression);
+			},
+
+			"IfStatement": function(line) {
+				this._evaluateExpressionStatement(line.test);
+				// TODO: evaluate the whole block for consequence and alternate
+			}
+		};
 	};
 
 	ASTApi.prototype.setVisitorForType = function(type, visitor) {
@@ -65,7 +89,12 @@
 
 	ASTApi.prototype._traceBody = function(body) {
 		body.forEach(function(line) {
-			this._callVisitorWithDefaultBehaviorForElement(line, this._defaultTraceLineBehaviour.bind(this));
+			var defaultVisitor = this.defaultVisitors[line.type];
+			if (defaultVisitor !== undefined) {
+				this._callVisitorWithDefaultBehaviorForElement(line, defaultVisitor.bind(this));
+			} else {
+				this._callVisitorWithDefaultBehaviorForElement(line, this._defaultTraceLineBehaviour.bind(this));
+			}
 		}, this);
 	};
 
@@ -88,22 +117,6 @@
 
 	ASTApi.prototype._defaultTraceLineBehaviour = function(line) {
 		switch(line.type) {
-			case "VariableDeclaration" :
-				line.declarations.forEach(function(declaration) {
-					if (declaration.init !== null) {
-						this._evaluateExpressionStatement(declaration.init);
-					}
-				}, this);
-				break;
-			case "FunctionDeclaration" :					
-				// TODO: Probably scan the body of the function here.
-				break;
-			case "ExpressionStatement" :
-				this._evaluateExpressionStatement(line.expression);
-				break;
-			case "IfStatement" :
-				this._evaluateExpressionStatement(line.test);
-				break;
 			default:
 				if (this.debug) {
 					console.error("Token not supported: " + line.type);	
