@@ -24,24 +24,16 @@
 			defaultBehaviour();
 		});
 		
-		// contextCollector.visitors.VariableDeclaration = function(line, collector, defaultBehaviour) {
-		// 	line.declarations.forEach(function(declaration) {
-		// 		collector.setLocationForVariableName(declaration.id.name, declaration.loc);
-		// 	});
-			
-		// 	defaultBehaviour();
-		// };
-
-		contextCollector.visitors.Identifier = function(expression, collector, defaultBehaviour) {
-			collector.setLocationForVariableName(expression.name, expression.loc);
+		contextCollector.setVisitorForType("Identifier", function(identifier, collector, defaultBehaviour) {
+			collector.setLocationForVariableName(identifier.name, identifier.loc);
 			defaultBehaviour();
-		};
+		});
 
-		contextCollector.visitors.FunctionDeclaration = function(functionExpression, collector, defaultBehaviour) {
+		contextCollector.setVisitorForType("FunctionDeclaration", function(functionExpression, collector, defaultBehaviour) {
 			collector.setLocationForVariableName(functionExpression.id.name, functionExpression.loc);
 			defaultBehaviour();
-		};
-
+		});
+		
 		contextCollector.setDebug(debug);
 
 		return contextCollector.trace();
