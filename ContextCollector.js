@@ -58,7 +58,7 @@
 			"VariableDeclaration" : function(line) {
 				line.declarations.forEach(function(declaration) {
 					if (declaration.init !== null) {
-						this._evaluateExpressionStatement(declaration.init);
+						this._traceToken(declaration.init);
 					}
 				}, this);
 			},
@@ -68,46 +68,46 @@
 			},
 
 			"ExpressionStatement": function(line) {
-				this._evaluateExpressionStatement(line.expression);
+				this._traceToken(line.expression);
 			},
 
 			"IfStatement": function(line) {
-				this._evaluateExpressionStatement(line.test);
+				this._traceToken(line.test);
 				// TODO: evaluate the whole block for consequence and alternate
 			},
 
 			"AssignmentExpression" : function(expression) {
-				this._evaluateExpressionStatement(expression.left);
-				this._evaluateExpressionStatement(expression.right);
+				this._traceToken(expression.left);
+				this._traceToken(expression.right);
 			},
 
 			"CallExpression" : function(expression) {
 				expression.arguments.forEach(function(argument) {
-					this._evaluateExpressionStatement(argument);
+					this._traceToken(argument);
 				}, this);
 
-				this._evaluateExpressionStatement(expression.callee);
+				this._traceToken(expression.callee);
 			},
 
 			"MemberExpression" : function(expression) {
-				this._evaluateExpressionStatement(expression.object);
+				this._traceToken(expression.object);
 			},
 
 			"FunctionExpression" : function(expression) {
 				expression.params.forEach(function(param) {
-					this._evaluateExpressionStatement(param);
+					this._traceToken(param);
 				}, this);
 			},
 
 			"BinaryExpression" : function(expression) {
-				this._evaluateExpressionStatement(expression.right);
-				this._evaluateExpressionStatement(expression.left);
+				this._traceToken(expression.right);
+				this._traceToken(expression.left);
 			},
 			
 			"ConditionalExpression" : function(expression) {
-				this._evaluateExpressionStatement(expression.test);
-				this._evaluateExpressionStatement(expression.consequent);
-				this._evaluateExpressionStatement(expression.alternate);
+				this._traceToken(expression.test);
+				this._traceToken(expression.consequent);
+				this._traceToken(expression.alternate);
 			}
 		};
 	};
