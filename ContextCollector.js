@@ -117,7 +117,7 @@
 	};
 
 	ASTApi.prototype.trace = function() {
-		this._traceBody(this.ast.body);
+		this._traceToken(this.ast.body);
 		return this.collector;
 	};
 
@@ -135,10 +135,6 @@
 			else {
 				this._callVisitorWithDefaultBehaviorForElement(token, this._defaultExpressionBehaviour.bind(this));
 			}
-	};
-
-	ASTApi.prototype._evaluateExpressionStatement = function(expression) {
-		this._traceToken(expression);
 	};
 
 	ASTApi.prototype._callVisitorWithDefaultBehaviorForElement = function(element, defaultBehaviour) {
