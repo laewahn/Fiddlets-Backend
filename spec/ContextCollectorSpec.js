@@ -44,6 +44,7 @@ describe("The context collector API", function() {
 		});
 
 		it("should return where a variable was assigned to a different variable", function() {
+			// var index = y;
 			expect(testContext.linesFor("index").some(function(line) {
 				return line.start.line === 5;
 			})).toBe(true);
@@ -51,6 +52,15 @@ describe("The context collector API", function() {
 			expect(testContext.linesFor("y").some(function(line) {
 				return line.start.line === 5;
 			})).toBe(true);
+
+			// howMany = secondInSameLine
+			expect(testContext.linesFor("howMany").some(function(line) {
+				return line.start.line === 24;
+			})).toBe(true);
+
+			expect(testContext.linesFor("secondInSameLine").some(function(line) {
+				return line.start.line === 24;
+			})).toBe(true);			
 		});
 
 		it("should return where an object was accessed", function() {

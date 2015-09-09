@@ -20,3 +20,5 @@ var appendBla = function(entry) {
 function prependFoo(value) {
 	return "foo_" + value
 }
+
+howMany = secondInSameLine;

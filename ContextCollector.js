@@ -44,6 +44,7 @@
 		switch(expression.type) {
 			case "AssignmentExpression" :
 				evaluateExpressionStatement(expression.left, context);
+				evaluateExpressionStatement(expression.right, context);
 				break;
 			case "CallExpression" :
 				expression.arguments.forEach(function(argument) {
