@@ -21,21 +21,15 @@
 			switch(line.type) {
 				case "VariableDeclaration" :
 					line.declarations.forEach(function(declaration) {
-						var variableName = declaration.id.name;
-						var variableLocation = declaration.loc;
-						
 						if (declaration.init !== null) {
 							evaluateExpressionStatement(declaration.init, context);
 						}
 
-						context.setLocationForVariableName(variableName, variableLocation);
+						context.setLocationForVariableName(declaration.id.name, declaration.loc);
 					});
 					break;
-				case "FunctionDeclaration" :
-					var variableName = line.id.name;
-					var variableLocation = line.loc;
-					
-					context.setLocationForVariableName(variableName, variableLocation);
+				case "FunctionDeclaration" :					
+					context.setLocationForVariableName(line.id.name, line.loc);
 					break;
 				case "ExpressionStatement" :
 					evaluateExpressionStatement(line.expression, context);
@@ -67,10 +61,7 @@
 				});
 				break;
 			case "Identifier" :
-				var variableName = expression.name;
-				var expressionLocation = expression.loc;
-
-				context.setLocationForVariableName(variableName, expressionLocation);
+				context.setLocationForVariableName(expression.name, expression.loc);
 				break;
 			default:
 				// console.log("No handling of " + expression.type);
