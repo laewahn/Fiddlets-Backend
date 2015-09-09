@@ -89,14 +89,19 @@
 
 	ASTApi.prototype._traceBody = function(body) {
 		body.forEach(function(line) {
-			var defaultVisitor = this.defaultVisitors[line.type];
-			if (defaultVisitor !== undefined) {
-				this._callVisitorWithDefaultBehaviorForElement(line, defaultVisitor.bind(this));
-			} else {
-				this._callVisitorWithDefaultBehaviorForElement(line, this._defaultTraceLineBehaviour.bind(this));
-			}
+			this._traceToken(line);
 		}, this);
 	};
+
+	ASTApi.prototype._traceToken = function(token) {
+		var defaultVisitor = this.defaultVisitors[token.type];
+			if (defaultVisitor !== undefined) {
+				this._callVisitorWithDefaultBehaviorForElement(token, defaultVisitor.bind(this));
+			}
+			// else {
+			// 	this._callVisitorWithDefaultBehaviorForElement(token, this._defaultTraceLineBehaviour.bind(this));
+			// }
+	} 
 
 	ASTApi.prototype._evaluateExpressionStatement = function(expression) {
 		this._callVisitorWithDefaultBehaviorForElement(expression, this._defaultExpressionBehaviour.bind(this));
