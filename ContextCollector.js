@@ -55,6 +55,12 @@
 		this.debug = debug;
 
 		this.defaultVisitors = {
+			"Program" : function(program) {
+				program.body.forEach(function(line) {
+					this._traceToken(line);
+				}, this);
+			},
+
 			"VariableDeclaration" : function(line) {
 				line.declarations.forEach(function(declaration) {
 					if (declaration.init !== null) {
@@ -117,24 +123,20 @@
 	};
 
 	ASTApi.prototype.trace = function() {
-		this._traceToken(this.ast.body);
+		this._traceToken(this.ast);
 		return this.collector;
-	};
-
-	ASTApi.prototype._traceBody = function(body) {
-		body.forEach(function(line) {
-			this._traceToken(line);
-		}, this);
 	};
 
 	ASTApi.prototype._traceToken = function(token) {
 		var defaultVisitor = this.defaultVisitors[token.type];
-			if (defaultVisitor !== undefined) {
-				this._callVisitorWithDefaultBehaviorForElement(token, defaultVisitor.bind(this));
-			}
-			else {
-				this._callVisitorWithDefaultBehaviorForElement(token, this._defaultExpressionBehaviour.bind(this));
-			}
+		
+		if (defaultVisitor !== undefined) {
+			this._callVisitorWithDefaultBehaviorForElement(token, defaultVisitor.bind(this));
+		}
+		else {
+			console.error("Token not supported: " + token.type);	
+			this._callVisitorWithDefaultBehaviorForElement(token, this._defaultExpressionBehaviour.bind(this));
+		}
 	};
 
 	ASTApi.prototype._callVisitorWithDefaultBehaviorForElement = function(element, defaultBehaviour) {
@@ -146,7 +148,7 @@
 		
 		if (visitor !== undefined) 
 			visitor(element, this.collector, defaultWrapper);
-		else
+		else 
 			defaultBehaviour(element, this.collector);
 	};
 
