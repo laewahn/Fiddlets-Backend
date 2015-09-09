@@ -31,27 +31,27 @@
 		return this.collector;
 	}
 
-	ASTApi.prototype._traceBody = function(body, context) {
+	ASTApi.prototype._traceBody = function(body, collector) {
 		body.forEach(function(line) {
 			// console.log(JSON.stringify(line, null, 2));
 			switch(line.type) {
 				case "VariableDeclaration" :
 					line.declarations.forEach(function(declaration) {
-						context.setLocationForVariableName(declaration.id.name, declaration.loc);
+						collector.setLocationForVariableName(declaration.id.name, declaration.loc);
 
 						if (declaration.init !== null) {
-							evaluateExpressionStatement(declaration.init, context);
+							evaluateExpressionStatement(declaration.init, collector);
 						}
 					});
 					break;
 				case "FunctionDeclaration" :					
-					context.setLocationForVariableName(line.id.name, line.loc);
+					collector.setLocationForVariableName(line.id.name, line.loc);
 					break;
 				case "ExpressionStatement" :
-					evaluateExpressionStatement(line.expression, context);
+					evaluateExpressionStatement(line.expression, collector);
 					break;
 				case "IfStatement" :
-					evaluateExpressionStatement(line.test, context);
+					evaluateExpressionStatement(line.test, collector);
 					break;
 				default:
 					if (debug) {
@@ -61,42 +61,42 @@
 		});
 	};
 
-	ASTApi.prototype._evaluateExpressionStatement = function(expression, context) {
-		if (context === null) {
-			throw "!!!You forgot to pass over the context!!!";
+	ASTApi.prototype._evaluateExpressionStatement = function(expression, collector) {
+		if (collector === null) {
+			throw "!!!You forgot to pass over the collector!!!";
 		}
 
 		switch(expression.type) {
 			case "AssignmentExpression" :
-				evaluateExpressionStatement(expression.left, context);
-				evaluateExpressionStatement(expression.right, context);
+				evaluateExpressionStatement(expression.left, collector);
+				evaluateExpressionStatement(expression.right, collector);
 				break;
 			case "CallExpression" :
 				expression.arguments.forEach(function(argument) {
-					evaluateExpressionStatement(argument, context);
+					evaluateExpressionStatement(argument, collector);
 				});
 
-				evaluateExpressionStatement(expression.callee, context);
+				evaluateExpressionStatement(expression.callee, collector);
 				break;
 			case "MemberExpression" :
-				evaluateExpressionStatement(expression.object, context);
+				evaluateExpressionStatement(expression.object, collector);
 				break;
 			case "FunctionExpression" :
 				expression.params.forEach(function(param) {
-					evaluateExpressionStatement(param, context);
+					evaluateExpressionStatement(param, collector);
 				});
 				break;
 			case "BinaryExpression" :
-				evaluateExpressionStatement(expression.right, context);
-				evaluateExpressionStatement(expression.left, context);
+				evaluateExpressionStatement(expression.right, collector);
+				evaluateExpressionStatement(expression.left, collector);
 				break;
 			case "ConditionalExpression" :
-				evaluateExpressionStatement(expression.test, context);
-				evaluateExpressionStatement(expression.consequent, context);
-				evaluateExpressionStatement(expression.alternate, context);
+				evaluateExpressionStatement(expression.test, collector);
+				evaluateExpressionStatement(expression.consequent, collector);
+				evaluateExpressionStatement(expression.alternate, collector);
 				break;
 			case "Identifier" :
-				context.setLocationForVariableName(expression.name, expression.loc);
+				collector.setLocationForVariableName(expression.name, expression.loc);
 				break;
 			default:
 				if (debug) {
