@@ -15,6 +15,20 @@
 		var ast = esprima.parse(source, {loc: true});
 
 		var contextCollector = new ASTApi(ast, new Context());
+
+		contextCollector.visitors.VariableDeclaration = function(line, collector, defaultBehaviour) {
+			line.declarations.forEach(function(declaration) {
+				collector.setLocationForVariableName(declaration.id.name, declaration.loc);
+			});
+			
+			defaultBehaviour();
+		};
+
+		contextCollector.visitors.Identifier = function(expression, collector, defaultBehaviour) {
+			collector.setLocationForVariableName(expression.name, expression.loc);
+			defaultBehaviour();
+		}
+
 		contextCollector.setDebug(debug);
 
 		return contextCollector.trace();
@@ -23,52 +37,77 @@
 	function ASTApi(ast, collector) {
 		this.ast = ast;
 		this.collector = collector;
+		this.visitors = {};
 	}
 
 	ASTApi.prototype.ast = undefined;
 	ASTApi.prototype.collector = undefined;
+	ASTApi.prototype.visitors = undefined;
 	ASTApi.prototype.debug = false;
 
 	ASTApi.prototype.setDebug = function(debug) {
 		this.debug = debug;
-	}
+	};
 
 	ASTApi.prototype.trace = function() {
 		this._traceBody(this.ast.body, this.collector);
 		return this.collector;
-	}
+	};
 
 	ASTApi.prototype._traceBody = function(body, collector) {
 		body.forEach(function(line) {
-			// console.log(JSON.stringify(line, null, 2));
-			switch(line.type) {
-				case "VariableDeclaration" :
-					line.declarations.forEach(function(declaration) {
-						collector.setLocationForVariableName(declaration.id.name, declaration.loc);
+			var visitor = this.visitors[line.type];
 
-						if (declaration.init !== null) {
-							this._evaluateExpressionStatement(declaration.init, collector);
-						}
-					}, this);
-					break;
-				case "FunctionDeclaration" :					
-					collector.setLocationForVariableName(line.id.name, line.loc);
-					break;
-				case "ExpressionStatement" :
-					this._evaluateExpressionStatement(line.expression, collector);
-					break;
-				case "IfStatement" :
-					this._evaluateExpressionStatement(line.test, collector);
-					break;
-				default:
-					if (this.debug) {
-						console.error("Token not supported: " + line.type);	
-					}
+			if (visitor !== undefined) {
+				visitor(line, collector, function() {
+					this._defaultTraceLineBehaviour(line, this.collector);
+				}.bind(this));
+			} else {
+				this._defaultTraceLineBehaviour(line, this.collector);
 			}
 		}, this);
 	};
 
+	ASTApi.prototype._defaultTraceLineBehaviour = function(line, collector) {
+		switch(line.type) {
+			case "VariableDeclaration" :
+				line.declarations.forEach(function(declaration) {
+					if (declaration.init !== null) {
+						this._evaluateExpressionStatement(declaration.init, collector);
+					}
+				}, this);
+				break;
+			case "FunctionDeclaration" :					
+				collector.setLocationForVariableName(line.id.name, line.loc);
+				break;
+			case "ExpressionStatement" :
+				this._evaluateExpressionStatement(line.expression, collector);
+				break;
+			case "IfStatement" :
+				this._evaluateExpressionStatement(line.test, collector);
+				break;
+			default:
+				if (this.debug) {
+					console.error("Token not supported: " + line.type);	
+				}
+		}
+	};
+
 	ASTApi.prototype._evaluateExpressionStatement = function(expression, collector) {
+		var visitor = this.visitors[expression.type];
+
+		if (visitor !== undefined) {
+			visitor(expression, collector, function() {
+				this._defaultExpressionBehaviour(expression, this.collector);
+			}.bind(this));
+		} else {
+			this._defaultExpressionBehaviour(expression, this.collector);
+		}
+
+		this._defaultExpressionBehaviour(expression, collector);
+	};
+
+	ASTApi.prototype._defaultExpressionBehaviour = function(expression, collector) {
 		if (collector === null) {
 			throw "!!!You forgot to pass over the collector!!!";
 		}
@@ -101,9 +140,6 @@
 				this._evaluateExpressionStatement(expression.test, collector);
 				this._evaluateExpressionStatement(expression.consequent, collector);
 				this._evaluateExpressionStatement(expression.alternate, collector);
-				break;
-			case "Identifier" :
-				collector.setLocationForVariableName(expression.name, expression.loc);
 				break;
 			default:
 				if (this.debug) {
