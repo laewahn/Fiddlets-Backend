@@ -130,44 +130,23 @@
 	ASTApi.prototype._traceToken = function(token) {
 		var defaultVisitor = this.defaultVisitors[token.type];
 		
-		if (defaultVisitor !== undefined) {
-			this._callVisitorWithDefaultBehaviorForElement(token, defaultVisitor.bind(this));
-		}
-		else {
-			console.error("Token not supported: " + token.type);	
-			this._callVisitorWithDefaultBehaviorForElement(token, this._defaultExpressionBehaviour.bind(this));
-		}
-	};
+		var defaultBehaviour = ((defaultVisitor !== undefined) ? defaultVisitor : function(token) {
+			if (this.debug) {
+				console.error("Token not supported: " + token.type);
+			}
+		}).bind(this);
 
-	ASTApi.prototype._callVisitorWithDefaultBehaviorForElement = function(element, defaultBehaviour) {
-		var visitor = this.visitors[element.type];
+
+		var visitor = this.visitors[token.type];
 
 		var defaultWrapper = function() {
-			defaultBehaviour(element, this.collector);
+			defaultBehaviour(token, this.collector);
 		}.bind(this);
-		
+
 		if (visitor !== undefined) 
-			visitor(element, this.collector, defaultWrapper);
+			visitor(token, this.collector, defaultWrapper);
 		else 
-			defaultBehaviour(element, this.collector);
-	};
-
-	ASTApi.prototype._defaultTraceLineBehaviour = function(line) {
-		switch(line.type) {
-			default:
-				if (this.debug) {
-					console.error("Token not supported: " + line.type);	
-				}
-		}
-	};
-
-	ASTApi.prototype._defaultExpressionBehaviour = function(expression) {
-		switch(expression.type) {
-			default:
-				if (this.debug) {
-					console.log("No handling of " + expression.type);	
-				}
-		}
+			defaultBehaviour(token, this.collector);
 	};
 
 	function Context() {
