@@ -1,8 +1,8 @@
-var y = /*"x"*/ "xxxxxxxy";
-y;
+var y = /*"x"*/ "xxxxxxxy", secondInSameLine;
+secondInSameLine = "something different";
 var bla = "blu" + "bla";
 var someValue = bla.indexOf("l");
-var index = 2;
+var index = y;
 var howMany = 1;
 var anArray = ["a", "b", "c", "b"];
 anArray.push("d");
