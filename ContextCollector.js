@@ -27,7 +27,7 @@
 		contextCollector.visitors.Identifier = function(expression, collector, defaultBehaviour) {
 			collector.setLocationForVariableName(expression.name, expression.loc);
 			defaultBehaviour();
-		}
+		};
 
 		contextCollector.setDebug(debug);
 
@@ -61,17 +61,7 @@
 	};
 
 	ASTApi.prototype._evaluateExpressionStatement = function(expression, collector) {
-		var visitor = this.visitors[expression.type];
-
-		if (visitor !== undefined) {
-			visitor(expression, collector, function() {
-				this._defaultExpressionBehaviour(expression, this.collector);
-			}.bind(this));
-		} else {
-			this._defaultExpressionBehaviour(expression, this.collector);
-		}
-
-		this._defaultExpressionBehaviour(expression, collector);
+		this._callVisitorWithDefaultBehaviorForElement(expression, collector, this._defaultExpressionBehaviour.bind(this));
 	};
 
 	ASTApi.prototype._callVisitorWithDefaultBehaviorForElement = function(element, collector, defaultBehaviour) {
@@ -81,8 +71,11 @@
 			defaultBehaviour(element, this.collector);
 		}.bind(this);
 		
-		visitor ? visitor(element, collector, defaultWrapper) : defaultBehaviour(element, this.collector)
-	}
+		if (visitor !== undefined) 
+			visitor(element, collector, defaultWrapper);
+		else
+			defaultBehaviour(element, this.collector);
+	};
 
 	ASTApi.prototype._defaultTraceLineBehaviour = function(line, collector) {
 		switch(line.type) {
