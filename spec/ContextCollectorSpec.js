@@ -77,6 +77,16 @@ describe("The context collector API", function() {
 			})).toBe(true);
 		});
 
+		it("should return where a variable was used in an operation", function() {
+			expect(testContext.linesFor("y").some(function(line) {
+				return line.start.line === 3;
+			})).toBe(true);
+
+			expect(testContext.linesFor("secondInSameLine").some(function(line) {
+				return line.start.line === 3;
+			})).toBe(true);
+		});
+
 		it("should return where a variable was used as a parameter", function(){
 			expect(testContext.linesFor("index").some(function(line) {
 				return line.start.line === 10;

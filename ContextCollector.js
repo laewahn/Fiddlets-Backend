@@ -41,6 +41,10 @@
 	}
 
 	function evaluateExpressionStatement(expression, context) {
+		if (context == null) {
+			throw "!!!You forgot to pass over the context!!!";
+		}
+
 		switch(expression.type) {
 			case "AssignmentExpression" :
 				evaluateExpressionStatement(expression.left, context);
@@ -60,6 +64,10 @@
 				expression.params.forEach(function(param) {
 					evaluateExpressionStatement(param, context);
 				});
+				break;
+			case "BinaryExpression" :
+				evaluateExpressionStatement(expression.right, context);
+				evaluateExpressionStatement(expression.left, context);
 				break;
 			case "Identifier" :
 				context.setLocationForVariableName(expression.name, expression.loc);

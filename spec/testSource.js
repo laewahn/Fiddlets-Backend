@@ -1,6 +1,6 @@
 var y = /*"x"*/ "xxxxxxxy", secondInSameLine;
 secondInSameLine = "something different";
-var bla = "blu" + "bla";
+var bla = y + secondInSameLine;
 var someValue = bla.indexOf("l");
 var index = y;
 var howMany = 1;
