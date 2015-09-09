@@ -1,5 +1,5 @@
 {
-    "name" : "Context collector",
+    "name" : "ContextCollector",
     "version" : "0.0.1",
     "description" : "Uses static analysis to find the context for a given code line",
     "author" : "Dennis Lewandowski",
