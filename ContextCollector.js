@@ -127,17 +127,29 @@
 		return this.collector;
 	};
 
-	ASTApi.prototype._traceToken = function(token) {
-		var defaultVisitor = this.defaultVisitors[token.type];
-		
-		var defaultBehaviour = ((defaultVisitor !== undefined) ? defaultVisitor : function(token) {
+	ASTApi.prototype._traceToken = function(token) {		
+		var defaultBehaviour = this._visitorForToken(token.type).bind(this);
+
+		var visitor = this.visitors[token.type];
+		if (visitor === undefined) {
+			visitor = defaultBehaviour;
+		}
+
+		var defaultBehaviourWrapper = function() {
+			defaultBehaviour(token, this.collector);
+		}.bind(this);
+
+		visitor(token, this.collector, defaultBehaviourWrapper);
+	};
+
+	ASTApi.prototype._visitorForToken = function(type) {
+		var defaultVisitor = this.defaultVisitors[type];
+
+		return (defaultVisitor !== undefined) ? defaultVisitor : function(token) {
 			if (this.debug) {
 				console.error("Token not supported: " + token.type);
 			}
-		}).bind(this);
-
-		var visitor = this.visitors[token.type] ? this.visitors[token.type] : defaultBehaviour;
-		visitor(token, this.collector, function() {	defaultBehaviour(token, this.collector); }.bind(this));
+		};
 	};
 
 	function Context() {
