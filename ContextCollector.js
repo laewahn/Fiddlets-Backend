@@ -29,6 +29,11 @@
 			defaultBehaviour();
 		};
 
+		contextCollector.visitors.FunctionDeclaration = function(functionExpression, collector, defaultBehaviour) {
+			collector.setLocationForVariableName(functionExpression.id.name, functionExpression.loc);
+			defaultBehaviour();
+		};
+
 		contextCollector.setDebug(debug);
 
 		return contextCollector.trace();
@@ -87,7 +92,7 @@
 				}, this);
 				break;
 			case "FunctionDeclaration" :					
-				this.collector.setLocationForVariableName(line.id.name, line.loc);
+				// TODO: Probably scan the body of the function here.
 				break;
 			case "ExpressionStatement" :
 				this._evaluateExpressionStatement(line.expression);
