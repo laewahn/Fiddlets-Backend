@@ -15,7 +15,7 @@
 		return new Context(contextMapping);
 	};
 
-	function traceBody(body, contextMapping) {
+	function traceBody(body, context) {
 		body.forEach(function(line) {
 			// console.log(JSON.stringify(line, null, 2));
 			switch(line.type) {
@@ -23,27 +23,28 @@
 					line.declarations.forEach(function(declaration) {
 						var variableName = declaration.id.name;
 						var variableLocation = declaration.loc;
-						if (contextMapping[variableName] === undefined) {
-							contextMapping[variableName] = [];
+
+						if (context[variableName] === undefined) {
+							context[variableName] = [];
 						}
 
 						if (declaration.init !== null) {
-							evaluateExpressionStatement(declaration.init, contextMapping);
+							evaluateExpressionStatement(declaration.init, context);
 						}
-						contextMapping[variableName].push(variableLocation);
+						context[variableName].push(variableLocation);
 					});
 					break;
 				case "FunctionDeclaration" :
 					var variableName = line.id.name;
 					var variableLocation = line.loc;
-					if (contextMapping[variableName] === undefined) {
-						contextMapping[variableName] = [];
+					if (context[variableName] === undefined) {
+						context[variableName] = [];
 					}
 
-					contextMapping[variableName].push(variableLocation);
+					context[variableName].push(variableLocation);
 					break;
 				case "ExpressionStatement" :
-					evaluateExpressionStatement(line.expression, contextMapping);
+					evaluateExpressionStatement(line.expression, context);
 					break;
 				default:
 					// console.error("Token not supported: " + line.type);
@@ -51,24 +52,24 @@
 		});
 	}
 
-	function evaluateExpressionStatement(expression, contextMapping) {
+	function evaluateExpressionStatement(expression, context) {
 		switch(expression.type) {
 			case "AssignmentExpression" :
-				evaluateExpressionStatement(expression.left, contextMapping);
+				evaluateExpressionStatement(expression.left, context);
 				break;
 			case "CallExpression" :
 				expression.arguments.forEach(function(argument) {
-					evaluateExpressionStatement(argument, contextMapping);
+					evaluateExpressionStatement(argument, context);
 				});
 
-				evaluateExpressionStatement(expression.callee, contextMapping);
+				evaluateExpressionStatement(expression.callee, context);
 				break;
 			case "MemberExpression" :
-				evaluateExpressionStatement(expression.object, contextMapping);
+				evaluateExpressionStatement(expression.object, context);
 				break;
 			case "FunctionExpression" :
 				expression.params.forEach(function(param) {
-					evaluateExpressionStatement(param, contextMapping);
+					evaluateExpressionStatement(param, context);
 				});
 				break;
 			case "Identifier" :
@@ -76,11 +77,11 @@
 
 				var expressionLocation = expression.loc;
 
-				if (contextMapping[variableName] === undefined) {
-					contextMapping[variableName] = [];
+				if (context[variableName] === undefined) {
+					context[variableName] = [];
 				}
 
-				contextMapping[variableName].push(expressionLocation);
+				context[variableName].push(expressionLocation);
 				break;
 			default:
 				// console.log("No handling of " + expression.type);
@@ -97,5 +98,13 @@
 	Context.prototype.linesFor = function(variableName) {
 		return this.contextMapping[variableName];
 	};
+
+	Context.prototype.setLocationFor(variableName, location) {
+		if (contextMapping[variableName] === undefined) {
+			contextMapping[variableName] = [];
+		}
+
+		contextMapping[variableName].push(location);
+	}
 
 })();
