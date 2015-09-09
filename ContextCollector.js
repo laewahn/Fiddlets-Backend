@@ -17,26 +17,25 @@
 		var ast = esprima.parse(source, {loc: true});
 
 		var contextCollector = new ASTApi(ast, new Context());
-
-		contextCollector.on("VariableDeclaration", function(line, collector, defaultBehaviour) {
+		contextCollector.setDebug(debug);
+		
+		contextCollector.on("VariableDeclaration", function(line, context, defaultBehaviour) {
 			line.declarations.forEach(function(declaration) {
-				collector.setLocationForVariableName(declaration.id.name, declaration.loc);
+				context.setLocationForVariableName(declaration.id.name, declaration.loc);
 			});
 			
 			defaultBehaviour();
 		});
 		
-		contextCollector.on("Identifier", function(identifier, collector, defaultBehaviour) {
-			collector.setLocationForVariableName(identifier.name, identifier.loc);
+		contextCollector.on("Identifier", function(identifier, context, defaultBehaviour) {
+			context.setLocationForVariableName(identifier.name, identifier.loc);
 			defaultBehaviour();
 		});
 
-		contextCollector.on("FunctionDeclaration", function(functionExpression, collector, defaultBehaviour) {
-			collector.setLocationForVariableName(functionExpression.id.name, functionExpression.loc);
+		contextCollector.on("FunctionDeclaration", function(functionExpression, context, defaultBehaviour) {
+			context.setLocationForVariableName(functionExpression.id.name, functionExpression.loc);
 			defaultBehaviour();
 		});
-		
-		contextCollector.setDebug(debug);
 
 		return contextCollector.trace();
 	};
