@@ -87,9 +87,6 @@ describe("The context collector API", function() {
 				return line.start.line === 3;
 			})).toBe(true);
 
-			// contextCollectAPI.setDebug(true);
-			testContext = contextCollectAPI.getContextFor(testSource);
-
 			// Ternary operator
 			expect(testContext.linesFor("index").some(function(line) {
 				return line.start.line === 25;
@@ -121,6 +118,16 @@ describe("The context collector API", function() {
 		it("should return where a function was declared", function() {
 			expect(testContext.linesFor("prependFoo").some(function(line) {
 				return line.start.line === 20 && line.end.line === 22;
+			})).toBe(true);
+		});
+
+		xit("should return the complete if statement in which a variable was used", function() {
+			contextCollectAPI.setDebug(true);
+			testContext = contextCollectAPI.getContextFor(testSource);
+
+			console.log(JSON.stringify(testContext.linesFor("someValue"), null, 2));
+			expect(testContext.linesFor("someValue").some(function(line) {
+				return line.start.line === 27 && line.end.line === 32;
 			})).toBe(true);
 		});
 

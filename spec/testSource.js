@@ -23,3 +23,10 @@ function prependFoo(value) {
 
 howMany = secondInSameLine;
 someValue = index ? bla : y;
+
+if (someValue) {
+	var foo = anArray.push(someValue);
+	anArray.push(foo);
+} else {
+	index + howMany;
+}

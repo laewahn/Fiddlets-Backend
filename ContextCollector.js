@@ -26,11 +26,11 @@
 			switch(line.type) {
 				case "VariableDeclaration" :
 					line.declarations.forEach(function(declaration) {
+						context.setLocationForVariableName(declaration.id.name, declaration.loc);
+
 						if (declaration.init !== null) {
 							evaluateExpressionStatement(declaration.init, context);
 						}
-
-						context.setLocationForVariableName(declaration.id.name, declaration.loc);
 					});
 					break;
 				case "FunctionDeclaration" :					
@@ -38,6 +38,9 @@
 					break;
 				case "ExpressionStatement" :
 					evaluateExpressionStatement(line.expression, context);
+					break;
+				case "IfStatement" :
+					evaluateExpressionStatement(line.test, context);
 					break;
 				default:
 					if (debug) {
