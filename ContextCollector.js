@@ -136,17 +136,8 @@
 			}
 		}).bind(this);
 
-
-		var visitor = this.visitors[token.type];
-
-		var defaultWrapper = function() {
-			defaultBehaviour(token, this.collector);
-		}.bind(this);
-
-		if (visitor !== undefined) 
-			visitor(token, this.collector, defaultWrapper);
-		else 
-			defaultBehaviour(token, this.collector);
+		var visitor = this.visitors[token.type] ? this.visitors[token.type] : defaultBehaviour;
+		visitor(token, this.collector, function() {	defaultBehaviour(token, this.collector); }.bind(this));
 	};
 
 	function Context() {
