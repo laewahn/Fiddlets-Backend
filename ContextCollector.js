@@ -50,21 +50,21 @@
 	};
 
 	ASTApi.prototype.trace = function() {
-		this._traceBody(this.ast.body, this.collector);
+		this._traceBody(this.ast.body);
 		return this.collector;
 	};
 
-	ASTApi.prototype._traceBody = function(body, collector) {
+	ASTApi.prototype._traceBody = function(body) {
 		body.forEach(function(line) {
-			this._callVisitorWithDefaultBehaviorForElement(line, collector, this._defaultTraceLineBehaviour.bind(this));
+			this._callVisitorWithDefaultBehaviorForElement(line, this._defaultTraceLineBehaviour.bind(this));
 		}, this);
 	};
 
-	ASTApi.prototype._evaluateExpressionStatement = function(expression, collector) {
-		this._callVisitorWithDefaultBehaviorForElement(expression, collector, this._defaultExpressionBehaviour.bind(this));
+	ASTApi.prototype._evaluateExpressionStatement = function(expression) {
+		this._callVisitorWithDefaultBehaviorForElement(expression, this._defaultExpressionBehaviour.bind(this));
 	};
 
-	ASTApi.prototype._callVisitorWithDefaultBehaviorForElement = function(element, collector, defaultBehaviour) {
+	ASTApi.prototype._callVisitorWithDefaultBehaviorForElement = function(element, defaultBehaviour) {
 		var visitor = this.visitors[element.type];
 
 		var defaultWrapper = function() {
@@ -72,28 +72,28 @@
 		}.bind(this);
 		
 		if (visitor !== undefined) 
-			visitor(element, collector, defaultWrapper);
+			visitor(element, this.collector, defaultWrapper);
 		else
 			defaultBehaviour(element, this.collector);
 	};
 
-	ASTApi.prototype._defaultTraceLineBehaviour = function(line, collector) {
+	ASTApi.prototype._defaultTraceLineBehaviour = function(line) {
 		switch(line.type) {
 			case "VariableDeclaration" :
 				line.declarations.forEach(function(declaration) {
 					if (declaration.init !== null) {
-						this._evaluateExpressionStatement(declaration.init, collector);
+						this._evaluateExpressionStatement(declaration.init);
 					}
 				}, this);
 				break;
 			case "FunctionDeclaration" :					
-				collector.setLocationForVariableName(line.id.name, line.loc);
+				this.collector.setLocationForVariableName(line.id.name, line.loc);
 				break;
 			case "ExpressionStatement" :
-				this._evaluateExpressionStatement(line.expression, collector);
+				this._evaluateExpressionStatement(line.expression);
 				break;
 			case "IfStatement" :
-				this._evaluateExpressionStatement(line.test, collector);
+				this._evaluateExpressionStatement(line.test);
 				break;
 			default:
 				if (this.debug) {
@@ -102,39 +102,35 @@
 		}
 	};
 
-	ASTApi.prototype._defaultExpressionBehaviour = function(expression, collector) {
-		if (collector === null) {
-			throw "!!!You forgot to pass over the collector!!!";
-		}
-
+	ASTApi.prototype._defaultExpressionBehaviour = function(expression) {
 		switch(expression.type) {
 			case "AssignmentExpression" :
-				this._evaluateExpressionStatement(expression.left, collector);
-				this._evaluateExpressionStatement(expression.right, collector);
+				this._evaluateExpressionStatement(expression.left);
+				this._evaluateExpressionStatement(expression.right);
 				break;
 			case "CallExpression" :
 				expression.arguments.forEach(function(argument) {
-					this._evaluateExpressionStatement(argument, collector);
+					this._evaluateExpressionStatement(argument);
 				}, this);
 
-				this._evaluateExpressionStatement(expression.callee, collector);
+				this._evaluateExpressionStatement(expression.callee);
 				break;
 			case "MemberExpression" :
-				this._evaluateExpressionStatement(expression.object, collector);
+				this._evaluateExpressionStatement(expression.object);
 				break;
 			case "FunctionExpression" :
 				expression.params.forEach(function(param) {
-					this._evaluateExpressionStatement(param, collector);
+					this._evaluateExpressionStatement(param);
 				}, this);
 				break;
 			case "BinaryExpression" :
-				this._evaluateExpressionStatement(expression.right, collector);
-				this._evaluateExpressionStatement(expression.left, collector);
+				this._evaluateExpressionStatement(expression.right);
+				this._evaluateExpressionStatement(expression.left);
 				break;
 			case "ConditionalExpression" :
-				this._evaluateExpressionStatement(expression.test, collector);
-				this._evaluateExpressionStatement(expression.consequent, collector);
-				this._evaluateExpressionStatement(expression.alternate, collector);
+				this._evaluateExpressionStatement(expression.test);
+				this._evaluateExpressionStatement(expression.consequent);
+				this._evaluateExpressionStatement(expression.alternate);
 				break;
 			default:
 				if (this.debug) {
