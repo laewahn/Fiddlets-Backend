@@ -15,6 +15,8 @@
 		var ast = esprima.parse(source, {loc: true});
 
 		var contextCollector = new ASTApi(ast, new Context());
+		contextCollector.setDebug(debug);
+
 		return contextCollector.trace();
 	};
 
@@ -25,6 +27,11 @@
 
 	ASTApi.prototype.ast = undefined;
 	ASTApi.prototype.collector = undefined;
+	ASTApi.prototype.debug = false;
+
+	ASTApi.prototype.setDebug = function(debug) {
+		this.debug = debug;
+	}
 
 	ASTApi.prototype.trace = function() {
 		this._traceBody(this.ast.body, this.collector);
@@ -54,7 +61,7 @@
 					this._evaluateExpressionStatement(line.test, collector);
 					break;
 				default:
-					if (debug) {
+					if (this.debug) {
 						console.error("Token not supported: " + line.type);	
 					}
 			}
@@ -99,7 +106,7 @@
 				collector.setLocationForVariableName(expression.name, expression.loc);
 				break;
 			default:
-				if (debug) {
+				if (this.debug) {
 					console.log("No handling of " + expression.type);	
 				}
 		}
