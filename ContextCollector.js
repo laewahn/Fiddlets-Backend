@@ -49,11 +49,10 @@
 				defaultBehaviour();
 			});
 
-			identifierCollector.ast = ifStatement.consequent;
-			identifierCollector.trace();
-
-			identifierCollector.ast = ifStatement.alternate;
-			identifierCollector.trace();
+			["consequent", "alternate"].forEach(function(member) {
+				identifierCollector.ast = ifStatement[member];
+				identifierCollector.trace();
+			});
 			
 			identifiers.forEach(function(identifier) {
 				context.setLocationForVariableName(identifier, ifStatement.loc);
@@ -74,17 +73,10 @@
 				defaultBehaviour();
 			});
 
-			identifierCollector.ast = loop.init;
-			identifierCollector.trace();
-
-			identifierCollector.ast = loop.test;
-			identifierCollector.trace();
-			
-			identifierCollector.ast = loop.update;
-			identifierCollector.trace();
-
-			identifierCollector.ast = loop.body;
-			identifierCollector.trace();
+			["init", "test", "update", "body"].forEach(function(member) {
+				identifierCollector.ast = loop[member];
+				identifierCollector.trace();
+			});
 			
 			identifiers.forEach(function(identifier) {
 				context.setLocationForVariableName(identifier, loop.loc);
