@@ -58,6 +58,39 @@
 			identifiers.forEach(function(identifier) {
 				context.setLocationForVariableName(identifier, ifStatement.loc);
 			});
+
+			defaultBehaviour();
+		});
+
+		contextCollector.on("ForStatement", function(loop, context, defaultBehaviour) {
+			var identifiers = [];
+			var identifierCollector = new ASTApi(null, identifiers);
+			
+			identifierCollector.on("Identifier", function(identifier, collector, defaultBehaviour) {
+				if (collector.indexOf(identifier.name !== -1)) {
+					collector.push(identifier.name);
+				}
+				
+				defaultBehaviour();
+			});
+
+			identifierCollector.ast = loop.init;
+			identifierCollector.trace();
+
+			identifierCollector.ast = loop.test;
+			identifierCollector.trace();
+			
+			identifierCollector.ast = loop.update;
+			identifierCollector.trace();
+
+			identifierCollector.ast = loop.body;
+			identifierCollector.trace();
+			
+			identifiers.forEach(function(identifier) {
+				context.setLocationForVariableName(identifier, loop.loc);
+			});
+
+			defaultBehaviour();
 		});
 
 		return contextCollector.trace();

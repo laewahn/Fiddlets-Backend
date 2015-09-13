@@ -77,6 +77,13 @@
 				this._traceToken(expression.alternate);
 			}, 
 
+			"ForStatement" : function(loop) {
+				this._traceToken(loop.init);
+				this._traceToken(loop.test);
+				this._traceToken(loop.update);
+				this._traceToken(loop.body);
+			},
+
 			"UpdateExpression" : function(expression) {
 				this._traceToken(expression.argument);
 			},

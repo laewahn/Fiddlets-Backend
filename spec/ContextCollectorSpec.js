@@ -142,6 +142,12 @@ describe("The context collector API", function() {
 			})).toBe(true);
 		});
 
+		it("should return the complete loop in which a variable was used", function() {
+			expect(testContext.linesFor("howMany").some(function(line) {
+				return line.start.line === 36 && line.end.line === 38;
+			})).toBe(true);
+		});
+
 	});
 
 });
