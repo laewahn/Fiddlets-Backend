@@ -154,6 +154,16 @@ describe("The context collector API", function() {
 			})).toBe(true);
 		});
 
+		// BIG TODO: What about functional scope?
+		// If a variable is redeclared inside a function, it should not be accessible from the outside.
+		// The need for an abstraction of scope.
+		// context.linesForWithScopeOfLine("bla", 12);
+		// context.lineFor("bla").withScopeOfLine(12);
+
+		// Different approach:
+		// 1. Scan for all positions of all identifiers
+		// 2. Scan for scopes
+		// 3. Sort identifiers into scopes
 	});
 
 });
