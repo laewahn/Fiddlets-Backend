@@ -25,6 +25,7 @@ describe("The context collector API", function() {
 	});
 
 	describe("The context", function() {
+		contextCollectAPI.setDebug(true);
 		var testContext = contextCollectAPI.getContextFor(testSource);
 
 		it("should return where a variable was declared", function() {
@@ -121,12 +122,12 @@ describe("The context collector API", function() {
 			})).toBe(true);
 		});
 
-		xit("should return the complete if statement in which a variable was used", function() {
-			contextCollectAPI.setDebug(true);
-			testContext = contextCollectAPI.getContextFor(testSource);
-
-			console.log(JSON.stringify(testContext.linesFor("someValue"), null, 2));
+		it("should return the complete if statement in which a variable was used", function() {
 			expect(testContext.linesFor("someValue").some(function(line) {
+				return line.start.line === 27 && line.end.line === 32;
+			})).toBe(true);
+
+			expect(testContext.linesFor("index").some(function(line) {
 				return line.start.line === 27 && line.end.line === 32;
 			})).toBe(true);
 		});

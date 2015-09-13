@@ -8,20 +8,16 @@
 		this.ast = ast;
 		this.collector = collector;
 		this.visitors = {};
-	}
-
-	ASTApi.prototype.ast = undefined;
-	ASTApi.prototype.collector = undefined;
-	ASTApi.prototype.visitors = undefined;
-	ASTApi.prototype.defaultVisitors = undefined;
-	ASTApi.prototype.debug = false;
-
-	ASTApi.prototype.setDebug = function(debug) {
-		this.debug = debug;
 
 		this.defaultVisitors = {
 			"Program" : function(program) {
 				program.body.forEach(function(line) {
+					this._traceToken(line);
+				}, this);
+			},
+
+			"BlockStatement" : function(block) {
+				block.body.forEach(function(line) {
 					this._traceToken(line);
 				}, this);
 			},
@@ -81,6 +77,16 @@
 				this._traceToken(expression.alternate);
 			}
 		};
+	}
+
+	ASTApi.prototype.ast = undefined;
+	ASTApi.prototype.collector = undefined;
+	ASTApi.prototype.visitors = undefined;
+	ASTApi.prototype.defaultVisitors = undefined;
+	ASTApi.prototype.debug = false;
+
+	ASTApi.prototype.setDebug = function(debug) {
+		this.debug = debug;
 	};
 
 	ASTApi.prototype.on = function(type, visitor) {
@@ -118,6 +124,6 @@
 	};
 
 	module.exports = ASTApi;
-	
+
 })();
 

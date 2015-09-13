@@ -30,3 +30,9 @@ if (someValue) {
 } else {
 	index + howMany;
 }
+
+var count;
+count++;
+for(count = 0; count < 10; count++) {
+	howMany++;
+}
