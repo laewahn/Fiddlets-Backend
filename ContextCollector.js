@@ -37,56 +37,53 @@
 			defaultBehaviour();
 		});
 
-		contextCollector.on("IfStatement", function(ifStatement, context, defaultBehaviour) {
-			var identifiers = [];
-			var identifierCollector = new ASTApi(null, identifiers);
+		function collectIdentifiersForASTMembers(astMembers, context) {
+			return function(ifStatement, context, defaultBehaviour) {
+				var identifierCollector = new IdentifierCollector(ifStatement);
+				var identifiers = identifierCollector.traceFor(astMembers);
 			
-			identifierCollector.on("Identifier", function(identifier, collector, defaultBehaviour) {
-				if (collector.indexOf(identifier.name !== -1)) {
-					collector.push(identifier.name);
-				}
-				
+				identifiers.forEach(function(identifier) {
+					context.setLocationForVariableName(identifier, ifStatement.loc);
+				});
+
 				defaultBehaviour();
-			});
+			}
+		}
 
-			["consequent", "alternate"].forEach(function(member) {
-				identifierCollector.ast = ifStatement[member];
-				identifierCollector.trace();
-			});
-			
-			identifiers.forEach(function(identifier) {
-				context.setLocationForVariableName(identifier, ifStatement.loc);
-			});
-
-			defaultBehaviour();
-		});
-
-		contextCollector.on("ForStatement", function(loop, context, defaultBehaviour) {
-			var identifiers = [];
-			var identifierCollector = new ASTApi(null, identifiers);
-			
-			identifierCollector.on("Identifier", function(identifier, collector, defaultBehaviour) {
-				if (collector.indexOf(identifier.name !== -1)) {
-					collector.push(identifier.name);
-				}
-				
-				defaultBehaviour();
-			});
-
-			["init", "test", "update", "body"].forEach(function(member) {
-				identifierCollector.ast = loop[member];
-				identifierCollector.trace();
-			});
-			
-			identifiers.forEach(function(identifier) {
-				context.setLocationForVariableName(identifier, loop.loc);
-			});
-
-			defaultBehaviour();
-		});
+		contextCollector.on("IfStatement", collectIdentifiersForASTMembers(["consequent", "alternate"]));
+		contextCollector.on("ForStatement", collectIdentifiersForASTMembers(["init", "test", "update", "body"]));
 
 		return contextCollector.trace();
 	};
+
+	function IdentifierCollector(ast) {
+		this.identifiers = [];
+		this.ast = ast;
+
+		this.astAPI = new ASTApi(null, this.identifiers);
+
+		this.astAPI.on("Identifier", function(anIdentifier, identifiers, defaultBehaviour) {
+			if (identifiers.indexOf(anIdentifier.name !== -1)) {
+				identifiers.push(anIdentifier.name);
+			}
+
+			defaultBehaviour();
+		});
+	}
+
+	IdentifierCollector.prototype.traceFor = function(members) {
+		members.forEach(function(member){
+			this.astAPI.ast = this.ast[member];
+			this.astAPI.trace();
+		}, this);
+
+		return this.identifiers;
+	}
+
+	IdentifierCollector.prototype.constructor = IdentifierCollector;
+	IdentifierCollector.prototype.astAPI = undefined;
+	IdentifierCollector.prototype.identifiers = undefined;
+
 
 	function Context() {
 		this.contextMapping = {};
