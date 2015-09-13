@@ -102,6 +102,12 @@ describe("The context collector API", function() {
 			})).toBe(true);
 		});
 
+		it("should return where a variable was incremented with the ++ operator", function() {
+			expect(testContext.linesFor("count").some(function(line) {
+				return line.start.line === 35;
+			})).toBe(true);
+		});
+
 		it("should return where a variable was used as a parameter", function(){
 			expect(testContext.linesFor("index").some(function(line) {
 				return line.start.line === 10;

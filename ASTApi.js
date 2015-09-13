@@ -75,6 +75,10 @@
 				this._traceToken(expression.test);
 				this._traceToken(expression.consequent);
 				this._traceToken(expression.alternate);
+			}, 
+
+			"UpdateExpression" : function(expression) {
+				this._traceToken(expression.argument);
 			}
 		};
 	}
