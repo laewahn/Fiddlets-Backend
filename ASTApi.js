@@ -79,7 +79,10 @@
 
 			"UpdateExpression" : function(expression) {
 				this._traceToken(expression.argument);
-			}
+			},
+
+			"Literal" : noop,
+			"Identifier" : noop
 		};
 	}
 
@@ -128,6 +131,8 @@
 	};
 
 	module.exports = ASTApi;
+
+	function noop() {}
 
 })();
 
