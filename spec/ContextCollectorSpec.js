@@ -148,6 +148,12 @@ describe("The context collector API", function() {
 			})).toBe(true);
 		});
 
+		it("should return the complete function in which a variable was used", function() {
+			expect(testContext.linesFor("y").some(function(line) {
+				return line.start.line === 15 && line.end.line === 18;
+			})).toBe(true);
+		});
+
 	});
 
 });

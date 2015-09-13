@@ -30,9 +30,8 @@
 				}, this);
 			},
 
-			"FunctionDeclaration" : function() {
-				// TODO: Probably scan the body of the function here.
-			},
+			"FunctionDeclaration" : this._traceBodyAndParams,
+			"FunctionExpression" : this._traceBodyAndParams,
 
 			"ExpressionStatement": function(line) {
 				this._traceToken(line.expression);
@@ -40,7 +39,8 @@
 
 			"IfStatement": function(line) {
 				this._traceToken(line.test);
-				// TODO: evaluate the whole block for consequence and alternate
+				this._traceToken(line.consequent);
+				this._traceToken(line.alternate);
 			},
 
 			"AssignmentExpression" : function(expression) {
@@ -60,11 +60,6 @@
 				this._traceToken(expression.object);
 			},
 
-			"FunctionExpression" : function(expression) {
-				expression.params.forEach(function(param) {
-					this._traceToken(param);
-				}, this);
-			},
 
 			"BinaryExpression" : function(expression) {
 				this._traceToken(expression.right);
@@ -88,8 +83,8 @@
 				this._traceToken(expression.argument);
 			},
 
-			"Literal" : noop,
-			"Identifier" : noop
+			"Literal" : this._noop,
+			"Identifier" : this._noop
 		};
 	}
 
@@ -137,9 +132,17 @@
 		};
 	};
 
-	module.exports = ASTApi;
+	ASTApi.prototype._traceBodyAndParams = function(theFunction) {
+		theFunction.params.forEach(function(param) {
+			this._traceToken(param);
+		}, this);
+	
+		this._traceToken(theFunction.body);
+	};
 
-	function noop() {}
+	ASTApi.prototype._noop = function() {};
+
+	module.exports = ASTApi;
 
 })();
 

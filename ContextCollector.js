@@ -34,20 +34,24 @@
 
 		contextCollector.on("FunctionDeclaration", function(functionExpression, context, defaultBehaviour) {
 			context.setLocationForVariableName(functionExpression.id.name, functionExpression.loc);
+			collectIdentifiersForASTMembers(["body"])(functionExpression, context, defaultBehaviour);
+
 			defaultBehaviour();
 		});
 
-		function collectIdentifiersForASTMembers(astMembers, context) {
+		contextCollector.on("FunctionExpression", collectIdentifiersForASTMembers(["body"]));
+
+		function collectIdentifiersForASTMembers(astMembers) {
 			return function(ifStatement, context, defaultBehaviour) {
 				var identifierCollector = new IdentifierCollector(ifStatement);
 				var identifiers = identifierCollector.traceFor(astMembers);
-			
+				
 				identifiers.forEach(function(identifier) {
 					context.setLocationForVariableName(identifier, ifStatement.loc);
 				});
 
 				defaultBehaviour();
-			}
+			};
 		}
 
 		contextCollector.on("IfStatement", collectIdentifiersForASTMembers(["consequent", "alternate"]));
@@ -78,7 +82,7 @@
 		}, this);
 
 		return this.identifiers;
-	}
+	};
 
 	IdentifierCollector.prototype.constructor = IdentifierCollector;
 	IdentifierCollector.prototype.astAPI = undefined;
