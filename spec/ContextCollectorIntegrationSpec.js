@@ -10,7 +10,7 @@ describe("The study sample code", function() {
 		
 	var source = fs.readFileSync("spec/sampleSource.js", "utf8");
 
-	it("should get the context locations for the easiest example line", function() {
+	xit("should get the context locations for the easiest example line", function() {
 		var context = contextCollectorAPI.contextForLineInSource(23, source);
 		
 		expect(context.lines.some(function(line){
@@ -25,7 +25,6 @@ describe("The study sample code", function() {
 	it("should create a string representation of the context for the easiest line", function() {
 		var context = contextCollectorAPI.contextForLineInSource(23, source);
 
-		expect(context.stringRepresentation()).toBeDefined();
-		expect(context.stringRepresentation()).toBe("");
+		expect(context.stringRepresentation()).toBe("var weatherInfoCSV = undefined;\nvar csvHeader = \"time,temperature,description\";\n");
 	});
 });

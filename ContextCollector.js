@@ -14,7 +14,8 @@
 	};
 
 	exports.contextForLineInSource = function(lineNr, source) {
-		var currentLine = source.split("\n")[lineNr - 1];
+		var allLines = source.split("\n")
+		var currentLine = allLines[lineNr - 1];
 
 		var currentLineIdentifierCollector = new IdentifierCollector(esprima.parse(currentLine));
 		var currentLineIdentifiers = currentLineIdentifierCollector.trace();
@@ -22,16 +23,41 @@
 		var identifierMapping = exports.getIdentifierMapping(source);
 		
 		var contextLines = [];
+		var unknownVariables = {};
+		var linesWithKnownVariables = [];
+
 		currentLineIdentifiers.forEach(function(identifier){
+			var linesWithIdentifier = identifierMapping.linesFor(identifier);
+			linesWithIdentifier.forEach(function(lineLocation) {
+				
+				if (lineLocation.start.line < lineNr) {
+					var theLine = allLines[lineLocation.start.line - 1];
+					var theLineIdentifiersCollector = new IdentifierCollector(esprima.parse(theLine));
+					var theLineIdentifiers = theLineIdentifiersCollector.trace();
+					
+					if (theLineIdentifiers.length !== 0 && unknownVariables[identifier] === undefined) {
+						unknownVariables[identifier] = lineLocation;
+					} 
+					
+					if (theLineIdentifiers.length === 0 && linesWithKnownVariables.indexOf(lineLocation) === -1) {
+						linesWithKnownVariables.push(theLine);
+					}
+				}
+			});
+
 			contextLines = contextLines.concat(identifierMapping.linesFor(identifier));
 		}, this);
 
 		return {
-			"lines" : contextLines
+			"lines" : contextLines,
+			"stringRepresentation" :function() {
+				console.log("Unknown: " + JSON.stringify(unknownVariables, null, 2));
+				console.log("Lines: " + JSON.stringify(linesWithKnownVariables, null, 2));
+
+				return "";
+			}
 		};
 	};
-
-
 
 	exports.getIdentifierMapping = function(source) {
 		var ast = esprima.parse(source, {loc: true});
