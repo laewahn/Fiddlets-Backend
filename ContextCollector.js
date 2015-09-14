@@ -20,6 +20,12 @@
 		var currentLineIdentifiers = currentLineIdentifierCollector.trace();
 
 		console.log(JSON.stringify(currentLineIdentifiers));
+		var contextLines = [];
+
+		var identifierMapping = 
+		currentLineIdentifiers.forEach(function(identifier){
+
+		}, this);
 	}
 
 
@@ -27,10 +33,10 @@
 	exports.getIdentifierMapping = function(source) {
 		var ast = esprima.parse(source, {loc: true});
 
-		var contextCollector = new ASTApi(ast, new IdentifierMapping());
-		contextCollector.setDebug(debug);
+		var identifierMapping = new ASTApi(ast, new IdentifierMapping());
+		identifierMapping.setDebug(debug);
 
-		contextCollector.on("VariableDeclaration", function(line, mapping, defaultBehaviour) {
+		identifierMapping.on("VariableDeclaration", function(line, mapping, defaultBehaviour) {
 			line.declarations.forEach(function(declaration) {
 				mapping.setLocationForVariableName(declaration.id.name, declaration.loc);
 			});
@@ -38,24 +44,24 @@
 			defaultBehaviour();
 		});
 		
-		contextCollector.on("Identifier", function(identifier, mapping, defaultBehaviour) {
+		identifierMapping.on("Identifier", function(identifier, mapping, defaultBehaviour) {
 			mapping.setLocationForVariableName(identifier.name, identifier.loc);
 			defaultBehaviour();
 		});
 
-		contextCollector.on("FunctionDeclaration", function(functionExpression, mapping, defaultBehaviour) {
+		identifierMapping.on("FunctionDeclaration", function(functionExpression, mapping, defaultBehaviour) {
 			mapping.setLocationForVariableName(functionExpression.id.name, functionExpression.loc);
 			collectIdentifiersForASTMembers(["body"])(functionExpression, mapping, defaultBehaviour);
 
 			defaultBehaviour();
 		});
 
-		contextCollector.on("FunctionExpression", collectIdentifiersForASTMembers(["body"]));
+		identifierMapping.on("FunctionExpression", collectIdentifiersForASTMembers(["body"]));
 
 		function collectIdentifiersForASTMembers(astMembers) {
 			return function(ifStatement, mapping, defaultBehaviour) {
-				var identifierCollector = new IdentifierCollector(ifStatement);
-				var identifiers = identifierCollector.traceFor(astMembers);
+				var identifierMapping = new IdentifierMapping(ifStatement);
+				var identifiers = identifierMapping.traceFor(astMembers);
 				
 				identifiers.forEach(function(identifier) {
 					mapping.setLocationForVariableName(identifier, ifStatement.loc);
@@ -65,10 +71,10 @@
 			};
 		}
 
-		contextCollector.on("IfStatement", collectIdentifiersForASTMembers(["consequent", "alternate"]));
-		contextCollector.on("ForStatement", collectIdentifiersForASTMembers(["init", "test", "update", "body"]));
+		identifierMapping.on("IfStatement", collectIdentifiersForASTMembers(["consequent", "alternate"]));
+		identifierMapping.on("ForStatement", collectIdentifiersForASTMembers(["init", "test", "update", "body"]));
 
-		return contextCollector.trace();
+		return identifierCollector.trace();
 	};
 
 	function IdentifierCollector(ast) {

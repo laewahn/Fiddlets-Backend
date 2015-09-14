@@ -10,8 +10,15 @@ describe("The study sample code", function() {
 
 		var contextCollectorAPI = require("../ContextCollector");
 		var context = contextCollectorAPI.contextForLineInSource(23, source);
-		var contextAsString = context.stringRepresentation();
 
-		expect(contextAsString).toBeDefined();
+		expect(context).toBeDefined();
+		
+		expect(context.lines.some(function(line){
+			return line.start.line === 20 && line.end.line === 20;
+		})).toBe(true);
+
+		expect(context.lines.some(function(line){
+			return line.start.line === 21 && line.end.line === 21;
+		})).toBe(true);
 	});
 });
