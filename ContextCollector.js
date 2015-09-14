@@ -14,8 +14,9 @@
 	};
 
 	exports.contextForLineInSource = function(lineNr, source) {
-		var allLines = source.split("\n")
-		var currentLine = allLines[lineNr - 1];
+		var sourceWrapper = new SourceCode(source);
+
+		var currentLine = sourceWrapper.getLine(lineNr);
 
 		var currentLineIdentifierCollector = new IdentifierCollector(esprima.parse(currentLine));
 		var currentLineIdentifiers = currentLineIdentifierCollector.trace();
@@ -31,7 +32,7 @@
 			linesWithIdentifier.forEach(function(lineLocation) {
 				
 				if (lineLocation.start.line < lineNr) {
-					var theLine = allLines[lineLocation.start.line - 1];
+					var theLine = sourceWrapper.getLine(lineLocation.start.line);
 					var theLineIdentifiersCollector = new IdentifierCollector(esprima.parse(theLine));
 					var theLineIdentifiers = theLineIdentifiersCollector.trace();
 					
@@ -58,6 +59,18 @@
 			}
 		};
 	};
+
+	function SourceCode(source) {
+		this.source = source;
+		this.lines = this.source.split("\n");
+	}
+
+	SourceCode.prototype.source = undefined;
+	SourceCode.prototype.lines = undefined;
+
+	SourceCode.prototype.getLine = function(lineNr) {
+		return this.lines[lineNr - 1];
+	}
 
 	exports.getIdentifierMapping = function(source) {
 		var ast = esprima.parse(source, {loc: true});
