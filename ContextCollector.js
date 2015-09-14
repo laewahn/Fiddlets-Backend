@@ -13,6 +13,17 @@
 		debug = debugFlag;
 	};
 
+	exports.contextForLineInSource = function(lineNr, source) {
+		var currentLine = source.split("\n")[lineNr - 1];
+
+		var currentLineIdentifierCollector = new IdentifierCollector(esprima.parse(currentLine));
+		var currentLineIdentifiers = currentLineIdentifierCollector.trace();
+
+		console.log(JSON.stringify(currentLineIdentifiers));
+	}
+
+
+
 	exports.getIdentifierMapping = function(source) {
 		var ast = esprima.parse(source, {loc: true});
 
@@ -64,7 +75,7 @@
 		this.identifiers = [];
 		this.ast = ast;
 
-		this.astAPI = new ASTApi(null, this.identifiers);
+		this.astAPI = new ASTApi(ast, this.identifiers);
 
 		this.astAPI.on("Identifier", function(anIdentifier, identifiers, defaultBehaviour) {
 			if (identifiers.indexOf(anIdentifier.name !== -1)) {
@@ -73,6 +84,10 @@
 
 			defaultBehaviour();
 		});
+	}
+
+	IdentifierCollector.prototype.trace = function() {
+		return this.astAPI.trace();
 	}
 
 	IdentifierCollector.prototype.traceFor = function(members) {
