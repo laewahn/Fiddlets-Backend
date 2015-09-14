@@ -13,28 +13,28 @@
 		debug = debugFlag;
 	};
 
-	exports.getContextFor = function(source) {
+	exports.getIdentifierMapping = function(source) {
 		var ast = esprima.parse(source, {loc: true});
 
-		var contextCollector = new ASTApi(ast, new Context());
+		var contextCollector = new ASTApi(ast, new IdentifierMapping());
 		contextCollector.setDebug(debug);
 
-		contextCollector.on("VariableDeclaration", function(line, context, defaultBehaviour) {
+		contextCollector.on("VariableDeclaration", function(line, mapping, defaultBehaviour) {
 			line.declarations.forEach(function(declaration) {
-				context.setLocationForVariableName(declaration.id.name, declaration.loc);
+				mapping.setLocationForVariableName(declaration.id.name, declaration.loc);
 			});
 			
 			defaultBehaviour();
 		});
 		
-		contextCollector.on("Identifier", function(identifier, context, defaultBehaviour) {
-			context.setLocationForVariableName(identifier.name, identifier.loc);
+		contextCollector.on("Identifier", function(identifier, mapping, defaultBehaviour) {
+			mapping.setLocationForVariableName(identifier.name, identifier.loc);
 			defaultBehaviour();
 		});
 
-		contextCollector.on("FunctionDeclaration", function(functionExpression, context, defaultBehaviour) {
-			context.setLocationForVariableName(functionExpression.id.name, functionExpression.loc);
-			collectIdentifiersForASTMembers(["body"])(functionExpression, context, defaultBehaviour);
+		contextCollector.on("FunctionDeclaration", function(functionExpression, mapping, defaultBehaviour) {
+			mapping.setLocationForVariableName(functionExpression.id.name, functionExpression.loc);
+			collectIdentifiersForASTMembers(["body"])(functionExpression, mapping, defaultBehaviour);
 
 			defaultBehaviour();
 		});
@@ -42,12 +42,12 @@
 		contextCollector.on("FunctionExpression", collectIdentifiersForASTMembers(["body"]));
 
 		function collectIdentifiersForASTMembers(astMembers) {
-			return function(ifStatement, context, defaultBehaviour) {
+			return function(ifStatement, mapping, defaultBehaviour) {
 				var identifierCollector = new IdentifierCollector(ifStatement);
 				var identifiers = identifierCollector.traceFor(astMembers);
 				
 				identifiers.forEach(function(identifier) {
-					context.setLocationForVariableName(identifier, ifStatement.loc);
+					mapping.setLocationForVariableName(identifier, ifStatement.loc);
 				});
 
 				defaultBehaviour();
@@ -89,18 +89,18 @@
 	IdentifierCollector.prototype.identifiers = undefined;
 
 
-	function Context() {
+	function IdentifierMapping() {
 		this.contextMapping = {};
 	}
 
-	Context.prototype.constructor = Context;
-	Context.prototype.contextMapping = undefined;
+	IdentifierMapping.prototype.constructor = IdentifierMapping;
+	IdentifierMapping.prototype.contextMapping = undefined;
 
-	Context.prototype.linesFor = function(variableName) {
+	IdentifierMapping.prototype.linesFor = function(variableName) {
 		return this.contextMapping[variableName];
 	};
 
-	Context.prototype.setLocationForVariableName = function(variableName, location) {
+	IdentifierMapping.prototype.setLocationForVariableName = function(variableName, location) {
 		if (this.contextMapping[variableName] === undefined) {
 			this.contextMapping[variableName] = [];
 		}

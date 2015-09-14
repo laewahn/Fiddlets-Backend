@@ -12,7 +12,7 @@ describe("The test spec", function() {
 	});
 });
 
-describe("The context collector API", function() {
+describe("The line mapping", function() {
 	var contextCollectAPI = require("../ContextCollector.js");
 
 	it("should be accessible through require", function() {	
@@ -20,13 +20,13 @@ describe("The context collector API", function() {
 	});
 
 	it("should be able to parse the code and return the context", function() {
-		var testContext = contextCollectAPI.getContextFor(testSource);
+		var testContext = contextCollectAPI.getIdentifierMapping(testSource);
 		expect(testContext).toBeDefined();
 	});
 
 	describe("The context", function() {
 		
-		var testContext = contextCollectAPI.getContextFor(testSource);
+		var testContext = contextCollectAPI.getIdentifierMapping(testSource);
 
 		it("should return where a variable was declared", function() {
 			expect(testContext.linesFor("index")[0].start.line).toEqual(5);
