@@ -18,15 +18,18 @@
 
 		var currentLineIdentifierCollector = new IdentifierCollector(esprima.parse(currentLine));
 		var currentLineIdentifiers = currentLineIdentifierCollector.trace();
-
-		console.log(JSON.stringify(currentLineIdentifiers));
+		
+		var identifierMapping = exports.getIdentifierMapping(source);
+		
 		var contextLines = [];
-
-		var identifierMapping = 
 		currentLineIdentifiers.forEach(function(identifier){
-
+			contextLines = contextLines.concat(identifierMapping.linesFor(identifier));
 		}, this);
-	}
+
+		return {
+			"lines" : contextLines
+		};
+	};
 
 
 
@@ -60,8 +63,8 @@
 
 		function collectIdentifiersForASTMembers(astMembers) {
 			return function(ifStatement, mapping, defaultBehaviour) {
-				var identifierMapping = new IdentifierMapping(ifStatement);
-				var identifiers = identifierMapping.traceFor(astMembers);
+				var identifierCollector = new IdentifierCollector(ifStatement);
+				var identifiers = identifierCollector.traceFor(astMembers);
 				
 				identifiers.forEach(function(identifier) {
 					mapping.setLocationForVariableName(identifier, ifStatement.loc);
@@ -74,7 +77,7 @@
 		identifierMapping.on("IfStatement", collectIdentifiersForASTMembers(["consequent", "alternate"]));
 		identifierMapping.on("ForStatement", collectIdentifiersForASTMembers(["init", "test", "update", "body"]));
 
-		return identifierCollector.trace();
+		return identifierMapping.trace();
 	};
 
 	function IdentifierCollector(ast) {
@@ -94,7 +97,7 @@
 
 	IdentifierCollector.prototype.trace = function() {
 		return this.astAPI.trace();
-	}
+	};
 
 	IdentifierCollector.prototype.traceFor = function(members) {
 		members.forEach(function(member){

@@ -4,14 +4,12 @@
 "use strict";
 
 describe("The study sample code", function() {
-	it("should parse without exception", function() {
+	it("should get the context locations for the easiest example line", function() {
 		var fs = require("fs");
 		var source = fs.readFileSync("spec/sampleSource.js", "utf8");
 
 		var contextCollectorAPI = require("../ContextCollector");
 		var context = contextCollectorAPI.contextForLineInSource(23, source);
-
-		expect(context).toBeDefined();
 		
 		expect(context.lines.some(function(line){
 			return line.start.line === 20 && line.end.line === 20;
