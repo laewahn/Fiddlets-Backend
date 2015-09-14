@@ -25,7 +25,7 @@ describe("The context collector API", function() {
 	});
 
 	describe("The context", function() {
-		contextCollectAPI.setDebug(true);
+		
 		var testContext = contextCollectAPI.getContextFor(testSource);
 
 		it("should return where a variable was declared", function() {
