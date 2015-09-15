@@ -82,7 +82,7 @@
 				// console.log("Unknown: " + JSON.stringify(unknownVariables, null, 2));
 				// console.log("Lines: " + JSON.stringify(linesWithKnownVariables, null, 2));
 
-				return linesWithKnownVariables.sort(function(a, b) {return a.location.start.line - b.location.start.line;}).map(function(e) {return e.source;}).join("\n");
+				return linesWithKnownVariables.sort(function(a, b) {return a.startsBefore(b);}).map(function(e) {return e.source;}).join("\n");
 			}
 		};
 	};
@@ -94,6 +94,10 @@
 
 	Line.prototype.source = undefined;
 	Line.prototype.location = undefined;
+
+	Line.prototype.startsBefore = function(other) {
+		return this.location.start.line - other.location.start.line;
+	};
 
 	function SourceCode(source) {
 		this.source = source;
