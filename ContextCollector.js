@@ -27,24 +27,26 @@
 		var context = new Context();
 		
 		sourceWrapper.identifiersInLine(lineNr).forEach(function(identifier){
-			var lines = identifierMapping.linesFor(identifier);
-			lines.forEach(function(lineLocation) {
+			var locations = identifierMapping.locationsFor(identifier);
+			locations.forEach(function(otherLineLocation) {
 				
-				if (lineLocation.start.line < lineNr) {
-					var theLine = sourceWrapper.getLine(lineLocation.start.line);
-					var theLineIdentifiers = sourceWrapper.identifiersInLine(lineLocation.start.line);
+				if (otherLineLocation.start.line < lineNr) {
+					var theLine = sourceWrapper.getLine(otherLineLocation.start.line);
+					var theLineIdentifiers = sourceWrapper.identifiersInLine(otherLineLocation.start.line);
 					theLineIdentifiers.remove(identifier);
 
 					if (theLineIdentifiers.length !== 0) {
-						identifierMapping.variablesDeclaredInLocation(lineLocation).forEach(function(declaredVariable) {
+						identifierMapping.variablesDeclaredInLocation(otherLineLocation).forEach(function(declaredVariable) {
 							var generatedDeclaration = generateDeclarationWithTag(identifier, "<#undefined#>");
-							context.addLineWithSourceAndLocation(generatedDeclaration, lineLocation);
+							context.addLineWithSourceAndLocation(generatedDeclaration, otherLineLocation);
 						});
+
+						console.log(JSON.stringify(theLineIdentifiers));
 					} 
 					
 					if (theLineIdentifiers.length === 0 && !context.hasLine(theLine)) {
 						context.removeUnknownVariable(identifier);
-						context.addLineWithSourceAndLocation(theLine, lineLocation);
+						context.addLineWithSourceAndLocation(theLine, otherLineLocation);
 					}
 				}
 			});
@@ -241,7 +243,7 @@
 	IdentifierMapping.prototype.identifiersByLocation = undefined;
 	IdentifierMapping.prototype.declarationsByLocation = undefined;
 
-	IdentifierMapping.prototype.linesFor = function(variableName) {
+	IdentifierMapping.prototype.locationsFor = function(variableName) {
 		return this.locationsByIdentifier[variableName];
 	};
 
