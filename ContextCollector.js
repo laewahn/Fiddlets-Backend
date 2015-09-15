@@ -58,19 +58,17 @@
         						};
         						var escodegen = require("escodegen");
         						var declarationLine = escodegen.generate(declarationAST);
-        						linesWithKnownVariables.push({source: declarationLine,
-        													  loc: lineLocation});
+        						linesWithKnownVariables.push(new Line(declarationLine, lineLocation));
         						console.log(declarationLine);
 							}
 						});
 					} 
 					
-					if (theLineIdentifiers.length === 0 && linesWithKnownVariables.some(function(e) {console.log("Testing " + JSON.stringify(e, null, 2)); return e.source === theLine;}) == false) {
+					if (theLineIdentifiers.length === 0 && linesWithKnownVariables.some(function(line) {return line.source === theLine;}) === false) {
 						if (unknownVariables[identifier] !== undefined) {
 							unknownVariables[identifier] = undefined;
 						}
-						linesWithKnownVariables.push({source: theLine,
-													  loc: lineLocation});
+						linesWithKnownVariables.push(new Line(theLine, lineLocation));
 					}
 				}
 			});
@@ -84,10 +82,18 @@
 				// console.log("Unknown: " + JSON.stringify(unknownVariables, null, 2));
 				// console.log("Lines: " + JSON.stringify(linesWithKnownVariables, null, 2));
 
-				return linesWithKnownVariables.sort(function(a, b) {return a.loc.start.line - b.loc.start.line}).map(function(e) {return e.source}).join("\n");
+				return linesWithKnownVariables.sort(function(a, b) {return a.location.start.line - b.location.start.line;}).map(function(e) {return e.source;}).join("\n");
 			}
 		};
 	};
+
+	function Line(source, location) {
+		this.source = source;
+		this.location = location;
+	}
+
+	Line.prototype.source = undefined;
+	Line.prototype.location = undefined;
 
 	function SourceCode(source) {
 		this.source = source;
