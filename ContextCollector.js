@@ -13,11 +13,19 @@
 		debug = debugFlag;
 	};
 
+	Array.prototype.remove = function(element) {
+		var elementIdx = this.indexOf(element);
+		if (elementIdx !== -1) {
+			this.splice(elementIdx, 1);
+		}
+	};
+	
 	exports.contextForLineInSource = function(lineNr, source) {
 		var sourceWrapper = new SourceCode(source);
-		var context = new Context();
-
 		var identifierMapping = getIdentifierMapping(source);
+
+		var context = new Context();
+		
 		sourceWrapper.identifiersInLine(lineNr).forEach(function(identifier){
 			var lines = identifierMapping.linesFor(identifier);
 			lines.forEach(function(lineLocation) {
@@ -25,15 +33,12 @@
 				if (lineLocation.start.line < lineNr) {
 					var theLine = sourceWrapper.getLine(lineLocation.start.line);
 					var theLineIdentifiers = sourceWrapper.identifiersInLine(lineLocation.start.line);
-					var identifierIdx = theLineIdentifiers.indexOf(identifier);
-					if (identifierIdx !== -1) {
-						theLineIdentifiers.splice(identifierIdx, 1);
-					}
+					theLineIdentifiers.remove(identifier);
 
-					if (theLineIdentifiers.length !== 0 && context.unknownVariables[identifier] === undefined ) {
-						context.unknownVariables[identifier] = lineLocation;
-						identifierMapping.declarationsForLine(lineLocation.start.line).forEach(function(declaration) {
-							if (context.unknownVariables[declaration] !== undefined) {
+					if (theLineIdentifiers.length !== 0 && !context.hasUnknownVariable(identifier)) {
+						context.addUnknownVariableWithLocation(identifier, lineLocation);
+						identifierMapping.variablesDeclaredInLocation(lineLocation).forEach(function(declaration) {
+							if (context.hasUnknownVariable(declaration)) {
 								var generatedDeclaration = generateDeclarationWithTag(identifier, "<#undefined#>");
         						context.linesWithKnownVariables.push(new Line(generatedDeclaration, lineLocation));
 							}
@@ -41,9 +46,7 @@
 					} 
 					
 					if (theLineIdentifiers.length === 0 && context.linesWithKnownVariables.some(function(line) {return line.source === theLine;}) === false) {
-						if (context.unknownVariables[identifier] !== undefined) {
-							context.unknownVariables[identifier] = undefined;
-						}
+						context.removeUnknownVariable(identifier);
 						context.linesWithKnownVariables.push(new Line(theLine, lineLocation));
 					}
 				}
@@ -70,6 +73,20 @@
 
 	Context.prototype.unknownVariables = undefined;
 	Context.prototype.linesWithKnownVariables = undefined;
+
+	Context.prototype.addUnknownVariableWithLocation = function(variableIdentifier, location) {
+		this.unknownVariables[variableIdentifier] = location;
+	};
+
+	Context.prototype.hasUnknownVariable = function(variableIdentifier) {
+		return this.unknownVariables[variableIdentifier] !== undefined;
+	};
+
+	Context.prototype.removeUnknownVariable = function(variableIdentifier) {
+		if (this.hasUnknownVariable(variableIdentifier)) {
+			this.unknownVariables[variableIdentifier] = undefined;
+		}
+	};
 
 	function generateDeclarationWithTag(variable, tag) {
 		var declarationAST = {
@@ -243,7 +260,11 @@
 		this.identifiersByLocation[lineNr].push(variableName);
 	};
 
-	IdentifierMapping.prototype.declarationsForLine = function(lineNr) {
+	IdentifierMapping.prototype.variablesDeclaredInLocation = function(location) {
+		return this.variablesDeclaredInLine(location.start.line);
+	};
+
+	IdentifierMapping.prototype.variablesDeclaredInLine = function(lineNr) {
 		return this.declarationsByLocation[lineNr];
 	};
 
