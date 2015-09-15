@@ -15,13 +15,9 @@
 
 	exports.contextForLineInSource = function(lineNr, source) {
 		var sourceWrapper = new SourceCode(source);
-
-		var currentLine = sourceWrapper.getLine(lineNr);
-
-		var currentLineIdentifierCollector = new IdentifierCollector(esprima.parse(currentLine));
-		var currentLineIdentifiers = currentLineIdentifierCollector.trace();
+		var currentLineIdentifiers = sourceWrapper.identifiersInLine(lineNr);
 		
-		var identifierMapping = exports.getIdentifierMapping(source);
+		var identifierMapping = getIdentifierMapping(source);
 		
 		var contextLines = [];
 		var unknownVariables = {};
@@ -70,9 +66,17 @@
 
 	SourceCode.prototype.getLine = function(lineNr) {
 		return this.lines[lineNr - 1];
-	}
+	};
 
-	exports.getIdentifierMapping = function(source) {
+	SourceCode.prototype.identifiersInLine = function(lineNr) {
+		var identifierMapping = getIdentifierMapping(this.source);
+		return identifierMapping.identifiersForLine(lineNr);
+	};
+
+	exports.SourceCode = SourceCode;
+	exports.getIdentifierMapping = getIdentifierMapping;
+
+	function getIdentifierMapping(source) {
 		var ast = esprima.parse(source, {loc: true});
 
 		var identifierMapping = new ASTApi(ast, new IdentifierMapping());
@@ -87,8 +91,10 @@
 		});
 		
 		identifierMapping.on("Identifier", function(identifier, mapping, defaultBehaviour) {
-			mapping.setLocationForVariableName(identifier.name, identifier.loc);
 			defaultBehaviour();
+
+			mapping.setLocationForVariableName(identifier.name, identifier.loc);
+			mapping.setIdentifierForLine(identifier.loc.start.line, identifier.name);
 		});
 
 		identifierMapping.on("FunctionDeclaration", function(functionExpression, mapping, defaultBehaviour) {
@@ -117,7 +123,7 @@
 		identifierMapping.on("ForStatement", collectIdentifiersForASTMembers(["init", "test", "update", "body"]));
 
 		return identifierMapping.trace();
-	};
+	}
 
 	function IdentifierCollector(ast) {
 		this.identifiers = [];
@@ -153,22 +159,36 @@
 
 
 	function IdentifierMapping() {
-		this.contextMapping = {};
+		this.locationsByIdentifier = {};
+		this.identifiersByLocation = {};
 	}
 
 	IdentifierMapping.prototype.constructor = IdentifierMapping;
-	IdentifierMapping.prototype.contextMapping = undefined;
+	IdentifierMapping.prototype.locationsByIdentifier = undefined;
+	IdentifierMapping.prototype.identifiersByLocation = undefined;
 
 	IdentifierMapping.prototype.linesFor = function(variableName) {
-		return this.contextMapping[variableName];
+		return this.locationsByIdentifier[variableName];
 	};
 
 	IdentifierMapping.prototype.setLocationForVariableName = function(variableName, location) {
-		if (this.contextMapping[variableName] === undefined) {
-			this.contextMapping[variableName] = [];
+		if (this.locationsByIdentifier[variableName] === undefined) {
+			this.locationsByIdentifier[variableName] = [];
 		}
 
-		this.contextMapping[variableName].push(location);
+		this.locationsByIdentifier[variableName].push(location);
+	};
+
+	IdentifierMapping.prototype.identifiersForLine = function(lineNr) {
+		return this.identifiersByLocation[lineNr];
+	};
+
+	IdentifierMapping.prototype.setIdentifierForLine = function(lineNr, variableName) {
+		if (this.identifiersByLocation[lineNr] === undefined) {
+			this.identifiersByLocation[lineNr] = [];
+		}
+
+		this.identifiersByLocation[lineNr].push(variableName);
 	};
 
 })();
