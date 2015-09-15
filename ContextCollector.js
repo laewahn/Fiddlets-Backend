@@ -15,10 +15,7 @@
 
 	exports.contextForLineInSource = function(lineNr, source) {
 		var sourceWrapper = new SourceCode(source);
-		
-		var contextLines = [];
-		var unknownVariables = {};
-		var linesWithKnownVariables = [];
+		var context = new Context();
 
 		var identifierMapping = getIdentifierMapping(source);
 		sourceWrapper.identifiersInLine(lineNr).forEach(function(identifier){
@@ -33,41 +30,46 @@
 						theLineIdentifiers.splice(identifierIdx, 1);
 					}
 
-					if (theLineIdentifiers.length !== 0 && unknownVariables[identifier] === undefined ) {
-						unknownVariables[identifier] = lineLocation;
+					if (theLineIdentifiers.length !== 0 && context.unknownVariables[identifier] === undefined ) {
+						context.unknownVariables[identifier] = lineLocation;
 						identifierMapping.declarationsForLine(lineLocation.start.line).forEach(function(declaration) {
-							if (unknownVariables[declaration] !== undefined) {
+							if (context.unknownVariables[declaration] !== undefined) {
 								var generatedDeclaration = generateDeclarationWithTag(identifier, "<#undefined#>");
-        						linesWithKnownVariables.push(new Line(generatedDeclaration, lineLocation));
+        						context.linesWithKnownVariables.push(new Line(generatedDeclaration, lineLocation));
 							}
 						});
 					} 
 					
-					if (theLineIdentifiers.length === 0 && linesWithKnownVariables.some(function(line) {return line.source === theLine;}) === false) {
-						if (unknownVariables[identifier] !== undefined) {
-							unknownVariables[identifier] = undefined;
+					if (theLineIdentifiers.length === 0 && context.linesWithKnownVariables.some(function(line) {return line.source === theLine;}) === false) {
+						if (context.unknownVariables[identifier] !== undefined) {
+							context.unknownVariables[identifier] = undefined;
 						}
-						linesWithKnownVariables.push(new Line(theLine, lineLocation));
+						context.linesWithKnownVariables.push(new Line(theLine, lineLocation));
 					}
 				}
 			});
-
-			contextLines = contextLines.concat(identifierMapping.linesFor(identifier));
 		}, this);
 
 		return {
-			"lines" : contextLines,
 			"stringRepresentation" :function() {
-				// console.log("Unknown: " + JSON.stringify(unknownVariables, null, 2));
-				// console.log("Lines: " + JSON.stringify(linesWithKnownVariables, null, 2));
+				// console.log("Unknown: " + JSON.stringify(context.unknownVariables, null, 2));
+				// console.log("Lines: " + JSON.stringify(context.linesWithKnownVariables, null, 2));
 				function byLocation(lineA, lineB) {
 					return lineA.startsBefore(lineB);
 				}
 
-				return linesWithKnownVariables.sort(byLocation).map(function(e) {return e.source;}).join("\n");
+				return context.linesWithKnownVariables.sort(byLocation).map(function(e) {return e.source;}).join("\n");
 			}
 		};
 	};
+
+	function Context() {
+		this.unknownVariables = {};
+		this.linesWithKnownVariables = [];
+	}
+
+	Context.prototype.unknownVariables = undefined;
+	Context.prototype.linesWithKnownVariables = undefined;
 
 	function generateDeclarationWithTag(variable, tag) {
 		var declarationAST = {
