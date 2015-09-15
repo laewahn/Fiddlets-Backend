@@ -36,12 +36,9 @@
 					theLineIdentifiers.remove(identifier);
 
 					if (theLineIdentifiers.length !== 0 && !context.hasUnknownVariable(identifier)) {
-						context.addUnknownVariableWithLocation(identifier, lineLocation);
 						identifierMapping.variablesDeclaredInLocation(lineLocation).forEach(function(declaredVariable) {
-							if (context.hasUnknownVariable(declaredVariable)) {
-								var generatedDeclaration = generateDeclarationWithTag(identifier, "<#undefined#>");
-								context.addLineWithSourceAndLocation(generatedDeclaration, lineLocation);
-							}
+							var generatedDeclaration = generateDeclarationWithTag(identifier, "<#undefined#>");
+							context.addLineWithSourceAndLocation(generatedDeclaration, lineLocation);
 						});
 					} 
 					
