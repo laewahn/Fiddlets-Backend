@@ -21,23 +21,56 @@
 		var linesWithKnownVariables = [];
 
 		var identifierMapping = getIdentifierMapping(source);
-
 		sourceWrapper.identifiersInLine(lineNr).forEach(function(identifier){
-			identifierMapping.linesFor(identifier).forEach(function(lineLocation) {
+			var lines = identifierMapping.linesFor(identifier);
+			lines.forEach(function(lineLocation) {
 				
 				if (lineLocation.start.line < lineNr) {
 					var theLine = sourceWrapper.getLine(lineLocation.start.line);
 					var theLineIdentifiers = sourceWrapper.identifiersInLine(lineLocation.start.line);
-					
-					if (theLineIdentifiers.length !== 0 && unknownVariables[identifier] === undefined) {
+					var identifierIdx = theLineIdentifiers.indexOf(identifier);
+					if (identifierIdx !== -1) {
+						theLineIdentifiers.splice(identifierIdx, 1);
+					}
+
+					if (theLineIdentifiers.length !== 0 && unknownVariables[identifier] === undefined ) {
 						unknownVariables[identifier] = lineLocation;
 
-						var theLineAST = esprima.parse(theLine);
-						console.log(JSON.stringify(theLineAST, null, 2));
+						var declarations = identifierMapping.declarationsForLine(lineLocation.start.line);
+						declarations.forEach(function(declaration) {
+							if (unknownVariables[declaration] !== undefined) {
+								var declarationAST = {
+            						"type": "VariableDeclaration",
+           							"declarations": [
+             						   {
+                    						"type": "VariableDeclarator",
+                    						"id": {
+                        						"type": "Identifier",
+                        						"name": declaration
+                    						},
+                    						"init": {
+                        						"type": "Identifier",
+                        						"name": "<#undefined#>"
+                    						}
+                						}
+            						],
+           							"kind": "var"
+        						};
+        						var escodegen = require("escodegen");
+        						var declarationLine = escodegen.generate(declarationAST);
+        						linesWithKnownVariables.push({source: declarationLine,
+        													  loc: lineLocation});
+        						console.log(declarationLine);
+							}
+						});
 					} 
 					
-					if (theLineIdentifiers.length === 0 && linesWithKnownVariables.indexOf(lineLocation) === -1) {
-						linesWithKnownVariables.push(theLine);
+					if (theLineIdentifiers.length === 0 && linesWithKnownVariables.some(function(e) {console.log("Testing " + JSON.stringify(e, null, 2)); return e.source === theLine;}) == false) {
+						if (unknownVariables[identifier] !== undefined) {
+							unknownVariables[identifier] = undefined;
+						}
+						linesWithKnownVariables.push({source: theLine,
+													  loc: lineLocation});
 					}
 				}
 			});
@@ -48,10 +81,10 @@
 		return {
 			"lines" : contextLines,
 			"stringRepresentation" :function() {
-				console.log("Unknown: " + JSON.stringify(unknownVariables, null, 2));
-				console.log("Lines: " + JSON.stringify(linesWithKnownVariables, null, 2));
+				// console.log("Unknown: " + JSON.stringify(unknownVariables, null, 2));
+				// console.log("Lines: " + JSON.stringify(linesWithKnownVariables, null, 2));
 
-				return linesWithKnownVariables.join("\n");
+				return linesWithKnownVariables.sort(function(a, b) {return a.loc.start.line - b.loc.start.line}).map(function(e) {return e.source}).join("\n");
 			}
 		};
 	};
@@ -84,7 +117,7 @@
 
 		identifierMapping.on("VariableDeclaration", function(line, mapping, defaultBehaviour) {
 			line.declarations.forEach(function(declaration) {
-				mapping.setDeclarationForLine(declaration.id.name, declaration.loc);
+				mapping.setDeclarationForLine(declaration.id.name, declaration.loc.start.line);
 				mapping.setIdentifierForLine(declaration.id.name, declaration.loc.start.line);
 				mapping.setLocationForVariableName(declaration.id.name, declaration.loc);
 			});
@@ -192,6 +225,10 @@
 		}
 
 		this.identifiersByLocation[lineNr].push(variableName);
+	};
+
+	IdentifierMapping.prototype.declarationsForLine = function(lineNr) {
+		return this.declarationsByLocation[lineNr];
 	};
 
 	IdentifierMapping.prototype.setDeclarationForLine = function(declaration, lineNr) {
