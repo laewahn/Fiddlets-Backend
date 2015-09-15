@@ -27,6 +27,8 @@
 					if (declaration.init !== null) {
 						this._traceToken(declaration.init);
 					}
+
+					this._traceToken(declaration);
 				}, this);
 			},
 
