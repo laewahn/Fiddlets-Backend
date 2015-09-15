@@ -25,6 +25,6 @@ describe("The study sample code", function() {
 	it("should create a string representation of the context for the easiest line", function() {
 		var context = contextCollectorAPI.contextForLineInSource(23, source);
 
-		expect(context.stringRepresentation()).toBe("var weatherInfoCSV = undefined;\nvar csvHeader = \"time,temperature,description\";\n");
+		expect(context.stringRepresentation()).toBe("var weatherInfoCSV = undefined;\nvar csvHeader = \"time,temperature,description\\n\";");
 	});
 });

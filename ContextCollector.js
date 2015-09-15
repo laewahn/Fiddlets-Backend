@@ -15,25 +15,25 @@
 
 	exports.contextForLineInSource = function(lineNr, source) {
 		var sourceWrapper = new SourceCode(source);
-		var currentLineIdentifiers = sourceWrapper.identifiersInLine(lineNr);
-		
-		var identifierMapping = getIdentifierMapping(source);
 		
 		var contextLines = [];
 		var unknownVariables = {};
 		var linesWithKnownVariables = [];
 
-		currentLineIdentifiers.forEach(function(identifier){
-			var linesWithIdentifier = identifierMapping.linesFor(identifier);
-			linesWithIdentifier.forEach(function(lineLocation) {
+		var identifierMapping = getIdentifierMapping(source);
+
+		sourceWrapper.identifiersInLine(lineNr).forEach(function(identifier){
+			identifierMapping.linesFor(identifier).forEach(function(lineLocation) {
 				
 				if (lineLocation.start.line < lineNr) {
 					var theLine = sourceWrapper.getLine(lineLocation.start.line);
-					var theLineIdentifiersCollector = new IdentifierCollector(esprima.parse(theLine));
-					var theLineIdentifiers = theLineIdentifiersCollector.trace();
+					var theLineIdentifiers = sourceWrapper.identifiersInLine(lineLocation.start.line);
 					
 					if (theLineIdentifiers.length !== 0 && unknownVariables[identifier] === undefined) {
 						unknownVariables[identifier] = lineLocation;
+
+						var theLineAST = esprima.parse(theLine);
+						console.log(JSON.stringify(theLineAST, null, 2));
 					} 
 					
 					if (theLineIdentifiers.length === 0 && linesWithKnownVariables.indexOf(lineLocation) === -1) {
@@ -51,7 +51,7 @@
 				console.log("Unknown: " + JSON.stringify(unknownVariables, null, 2));
 				console.log("Lines: " + JSON.stringify(linesWithKnownVariables, null, 2));
 
-				return "";
+				return linesWithKnownVariables.join("\n");
 			}
 		};
 	};
@@ -84,6 +84,8 @@
 
 		identifierMapping.on("VariableDeclaration", function(line, mapping, defaultBehaviour) {
 			line.declarations.forEach(function(declaration) {
+				mapping.setDeclarationForLine(declaration.id.name, declaration.loc);
+				mapping.setIdentifierForLine(declaration.id.name, declaration.loc.start.line);
 				mapping.setLocationForVariableName(declaration.id.name, declaration.loc);
 			});
 			
@@ -94,7 +96,7 @@
 			defaultBehaviour();
 
 			mapping.setLocationForVariableName(identifier.name, identifier.loc);
-			mapping.setIdentifierForLine(identifier.loc.start.line, identifier.name);
+			mapping.setIdentifierForLine(identifier.name, identifier.loc.start.line);
 		});
 
 		identifierMapping.on("FunctionDeclaration", function(functionExpression, mapping, defaultBehaviour) {
@@ -157,15 +159,16 @@
 	IdentifierCollector.prototype.astAPI = undefined;
 	IdentifierCollector.prototype.identifiers = undefined;
 
-
 	function IdentifierMapping() {
 		this.locationsByIdentifier = {};
 		this.identifiersByLocation = {};
+		this.declarationsByLocation = {};
 	}
 
 	IdentifierMapping.prototype.constructor = IdentifierMapping;
 	IdentifierMapping.prototype.locationsByIdentifier = undefined;
 	IdentifierMapping.prototype.identifiersByLocation = undefined;
+	IdentifierMapping.prototype.declarationsByLocation = undefined;
 
 	IdentifierMapping.prototype.linesFor = function(variableName) {
 		return this.locationsByIdentifier[variableName];
@@ -183,12 +186,20 @@
 		return this.identifiersByLocation[lineNr];
 	};
 
-	IdentifierMapping.prototype.setIdentifierForLine = function(lineNr, variableName) {
+	IdentifierMapping.prototype.setIdentifierForLine = function(variableName, lineNr) {
 		if (this.identifiersByLocation[lineNr] === undefined) {
 			this.identifiersByLocation[lineNr] = [];
 		}
 
 		this.identifiersByLocation[lineNr].push(variableName);
+	};
+
+	IdentifierMapping.prototype.setDeclarationForLine = function(declaration, lineNr) {
+		if (this.declarationsByLocation[lineNr] === undefined) {
+			this.declarationsByLocation[lineNr] = [];
+		}
+
+		this.declarationsByLocation[lineNr].push(declaration);
 	};
 
 })();
