@@ -53,17 +53,7 @@
 			});
 		}, this);
 
-		return {
-			"stringRepresentation" :function() {
-				// console.log("Unknown: " + JSON.stringify(context.unknownVariables, null, 2));
-				// console.log("Lines: " + JSON.stringify(context.lines, null, 2));
-				function byLocation(lineA, lineB) {
-					return lineA.startsBefore(lineB);
-				}
-
-				return context.lines.sort(byLocation).map(function(e) {return e.source;}).join("\n");
-			}
-		};
+		return context
 	};
 
 	function Context() {
@@ -90,12 +80,20 @@
 
 	Context.prototype.addLineWithSourceAndLocation = function(lineSource, location) {
 		this.lines.push(new Line(lineSource, location));
-	}
+	};
 
 	Context.prototype.hasLine = function(line) {
 		return this.lines.some(function(e) {
 			return e.source === line;
 		});
+	};
+
+	Context.prototype.stringRepresentation = function() {
+		function byLocation(lineA, lineB) {
+			return lineA.startsBefore(lineB);
+		}
+
+		return this.lines.sort(byLocation).map(function(line) {return line.source;}).join("\n");
 	}
 
 	function generateDeclarationWithTag(variable, tag) {
