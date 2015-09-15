@@ -40,14 +40,14 @@
 						identifierMapping.variablesDeclaredInLocation(lineLocation).forEach(function(declaredVariable) {
 							if (context.hasUnknownVariable(declaredVariable)) {
 								var generatedDeclaration = generateDeclarationWithTag(identifier, "<#undefined#>");
-        						context.lines.push(new Line(generatedDeclaration, lineLocation));
+								context.addLineWithSourceAndLocation(generatedDeclaration, lineLocation);
 							}
 						});
 					} 
 					
 					if (theLineIdentifiers.length === 0 && !context.hasLine(theLine)) {
 						context.removeUnknownVariable(identifier);
-						context.lines.push(new Line(theLine, lineLocation));
+						context.addLineWithSourceAndLocation(theLine, lineLocation);
 					}
 				}
 			});
@@ -87,6 +87,10 @@
 			this.unknownVariables[variableIdentifier] = undefined;
 		}
 	};
+
+	Context.prototype.addLineWithSourceAndLocation = function(lineSource, location) {
+		this.lines.push(new Line(lineSource, location));
+	}
 
 	Context.prototype.hasLine = function(line) {
 		return this.lines.some(function(e) {
