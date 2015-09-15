@@ -19,7 +19,7 @@
 			this.splice(elementIdx, 1);
 		}
 	};
-	
+
 	exports.contextForLineInSource = function(lineNr, source) {
 		var sourceWrapper = new SourceCode(source);
 		var identifierMapping = getIdentifierMapping(source);
@@ -40,14 +40,14 @@
 						identifierMapping.variablesDeclaredInLocation(lineLocation).forEach(function(declaration) {
 							if (context.hasUnknownVariable(declaration)) {
 								var generatedDeclaration = generateDeclarationWithTag(identifier, "<#undefined#>");
-        						context.linesWithKnownVariables.push(new Line(generatedDeclaration, lineLocation));
+        						context.lines.push(new Line(generatedDeclaration, lineLocation));
 							}
 						});
 					} 
 					
-					if (theLineIdentifiers.length === 0 && context.linesWithKnownVariables.some(function(line) {return line.source === theLine;}) === false) {
+					if (theLineIdentifiers.length === 0 && !context.hasLine(theLine)) {
 						context.removeUnknownVariable(identifier);
-						context.linesWithKnownVariables.push(new Line(theLine, lineLocation));
+						context.lines.push(new Line(theLine, lineLocation));
 					}
 				}
 			});
@@ -56,23 +56,23 @@
 		return {
 			"stringRepresentation" :function() {
 				// console.log("Unknown: " + JSON.stringify(context.unknownVariables, null, 2));
-				// console.log("Lines: " + JSON.stringify(context.linesWithKnownVariables, null, 2));
+				// console.log("Lines: " + JSON.stringify(context.lines, null, 2));
 				function byLocation(lineA, lineB) {
 					return lineA.startsBefore(lineB);
 				}
 
-				return context.linesWithKnownVariables.sort(byLocation).map(function(e) {return e.source;}).join("\n");
+				return context.lines.sort(byLocation).map(function(e) {return e.source;}).join("\n");
 			}
 		};
 	};
 
 	function Context() {
 		this.unknownVariables = {};
-		this.linesWithKnownVariables = [];
+		this.lines = [];
 	}
 
 	Context.prototype.unknownVariables = undefined;
-	Context.prototype.linesWithKnownVariables = undefined;
+	Context.prototype.lines = undefined;
 
 	Context.prototype.addUnknownVariableWithLocation = function(variableIdentifier, location) {
 		this.unknownVariables[variableIdentifier] = location;
@@ -87,6 +87,12 @@
 			this.unknownVariables[variableIdentifier] = undefined;
 		}
 	};
+
+	Context.prototype.hasLine = function(line) {
+		return this.lines.some(function(e) {
+			return e.source === line;
+		});
+	}
 
 	function generateDeclarationWithTag(variable, tag) {
 		var declarationAST = {
