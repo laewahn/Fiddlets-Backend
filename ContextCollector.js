@@ -35,31 +35,10 @@
 
 					if (theLineIdentifiers.length !== 0 && unknownVariables[identifier] === undefined ) {
 						unknownVariables[identifier] = lineLocation;
-
-						var declarations = identifierMapping.declarationsForLine(lineLocation.start.line);
-						declarations.forEach(function(declaration) {
+						identifierMapping.declarationsForLine(lineLocation.start.line).forEach(function(declaration) {
 							if (unknownVariables[declaration] !== undefined) {
-								var declarationAST = {
-            						"type": "VariableDeclaration",
-           							"declarations": [
-             						   {
-                    						"type": "VariableDeclarator",
-                    						"id": {
-                        						"type": "Identifier",
-                        						"name": declaration
-                    						},
-                    						"init": {
-                        						"type": "Identifier",
-                        						"name": "<#undefined#>"
-                    						}
-                						}
-            						],
-           							"kind": "var"
-        						};
-        						var escodegen = require("escodegen");
-        						var declarationLine = escodegen.generate(declarationAST);
-        						linesWithKnownVariables.push(new Line(declarationLine, lineLocation));
-        						console.log(declarationLine);
+								var generatedDeclaration = generateDeclarationWithTag(identifier, "<#undefined#>");
+        						linesWithKnownVariables.push(new Line(generatedDeclaration, lineLocation));
 							}
 						});
 					} 
@@ -81,11 +60,36 @@
 			"stringRepresentation" :function() {
 				// console.log("Unknown: " + JSON.stringify(unknownVariables, null, 2));
 				// console.log("Lines: " + JSON.stringify(linesWithKnownVariables, null, 2));
+				function byLocation(lineA, lineB) {
+					return lineA.startsBefore(lineB);
+				}
 
-				return linesWithKnownVariables.sort(function(a, b) {return a.startsBefore(b);}).map(function(e) {return e.source;}).join("\n");
+				return linesWithKnownVariables.sort(byLocation).map(function(e) {return e.source;}).join("\n");
 			}
 		};
 	};
+
+	function generateDeclarationWithTag(variable, tag) {
+		var declarationAST = {
+            						"type": "VariableDeclaration",
+           							"declarations": [
+             						   {
+                    						"type": "VariableDeclarator",
+                    						"id": {
+                        						"type": "Identifier",
+                        						"name": variable
+                    						},
+                    						"init": {
+                        						"type": "Identifier",
+                        						"name": tag
+                    						}
+                						}
+            						],
+           							"kind": "var"
+        						};
+       	var escodegen = require("escodegen");
+        return escodegen.generate(declarationAST);
+	}
 
 	function Line(source, location) {
 		this.source = source;
