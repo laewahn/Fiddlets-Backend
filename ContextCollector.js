@@ -37,8 +37,8 @@
 
 					if (theLineIdentifiers.length !== 0 && !context.hasUnknownVariable(identifier)) {
 						context.addUnknownVariableWithLocation(identifier, lineLocation);
-						identifierMapping.variablesDeclaredInLocation(lineLocation).forEach(function(declaration) {
-							if (context.hasUnknownVariable(declaration)) {
+						identifierMapping.variablesDeclaredInLocation(lineLocation).forEach(function(declaredVariable) {
+							if (context.hasUnknownVariable(declaredVariable)) {
 								var generatedDeclaration = generateDeclarationWithTag(identifier, "<#undefined#>");
         						context.lines.push(new Line(generatedDeclaration, lineLocation));
 							}
