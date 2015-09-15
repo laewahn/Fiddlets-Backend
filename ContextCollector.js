@@ -35,7 +35,7 @@
 					var theLineIdentifiers = sourceWrapper.identifiersInLine(lineLocation.start.line);
 					theLineIdentifiers.remove(identifier);
 
-					if (theLineIdentifiers.length !== 0 && !context.hasUnknownVariable(identifier)) {
+					if (theLineIdentifiers.length !== 0) {
 						identifierMapping.variablesDeclaredInLocation(lineLocation).forEach(function(declaredVariable) {
 							var generatedDeclaration = generateDeclarationWithTag(identifier, "<#undefined#>");
 							context.addLineWithSourceAndLocation(generatedDeclaration, lineLocation);
