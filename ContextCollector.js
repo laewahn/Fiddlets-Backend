@@ -31,19 +31,19 @@
 				
 				if (otherLineLocation.start.line < lineNr) {
 					var theLine = sourceWrapper.getLine(otherLineLocation.start.line);
-					var theLineIdentifiers = sourceWrapper.identifiersInLine(otherLineLocation.start.line);
-					theLineIdentifiers.remove(identifier);
+					var identifiersInOtherLine = sourceWrapper.identifiersInLine(otherLineLocation.start.line);
+					identifiersInOtherLine.remove(identifier);
 
-					if (theLineIdentifiers.length !== 0) {
+					if (identifiersInOtherLine.length !== 0) {
 						identifierMapping.variablesDeclaredInLocation(otherLineLocation).forEach(function(declaredVariable) {
 							var generatedDeclaration = generateDeclarationWithTag(declaredVariable, "<#undefined#>");
 							context.addLineWithSourceAndLocation(generatedDeclaration, otherLineLocation);
 						});
 
-						console.log(JSON.stringify(theLineIdentifiers));
+						console.log(JSON.stringify(identifiersInOtherLine));
 					} 
 					
-					if (theLineIdentifiers.length === 0 && !context.hasLine(theLine)) {
+					if (identifiersInOtherLine.length === 0 && !context.hasLine(theLine)) {
 						context.removeUnknownVariable(identifier);
 						context.addLineWithSourceAndLocation(theLine, otherLineLocation);
 					}
