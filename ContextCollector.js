@@ -27,8 +27,7 @@
 		var context = new Context();
 		
 		sourceWrapper.identifiersInLine(lineNr).forEach(function(identifier){
-			var locations = identifierMapping.locationsFor(identifier);
-			locations.forEach(function(otherLineLocation) {
+			identifierMapping.locationsFor(identifier).forEach(function(otherLineLocation) {
 				
 				if (otherLineLocation.start.line < lineNr) {
 					var theLine = sourceWrapper.getLine(otherLineLocation.start.line);
@@ -37,7 +36,7 @@
 
 					if (theLineIdentifiers.length !== 0) {
 						identifierMapping.variablesDeclaredInLocation(otherLineLocation).forEach(function(declaredVariable) {
-							var generatedDeclaration = generateDeclarationWithTag(identifier, "<#undefined#>");
+							var generatedDeclaration = generateDeclarationWithTag(declaredVariable, "<#undefined#>");
 							context.addLineWithSourceAndLocation(generatedDeclaration, otherLineLocation);
 						});
 
@@ -52,7 +51,7 @@
 			});
 		}, this);
 
-		return context
+		return context;
 	};
 
 	function Context() {
@@ -93,7 +92,7 @@
 		}
 
 		return this.lines.sort(byLocation).map(function(line) {return line.source;}).join("\n");
-	}
+	};
 
 	function generateDeclarationWithTag(variable, tag) {
 		var declarationAST = {
