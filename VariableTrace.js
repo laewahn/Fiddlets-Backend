@@ -39,21 +39,18 @@
 
 		ast.on("Program::Body::Line", function(line, instrumentedBody, defaultBehaviour) {
 				instrumentedBody.push(line);
-				if (line.type === "VariableDeclaration") {
-					line.declarations.forEach(function(declarator) {
-						instrumentedBody.push(tracingExpressionForVariableWithValue(declarator.id, declarator.id));
-					});
-					
-				}
-
-				if (line.type === "ExpressionStatement" && line.expression.type === "AssignmentExpression") {
-					instrumentedBody.push(tracingExpressionForVariableWithValue(line.expression.left, line.expression.right));
-				}
+				defaultBehaviour();
 		});
 
-		// ast.on("VariableDeclaration", function(line) {
+		ast.on("VariableDeclaration", function(line, instrumentedBody) {
+			line.declarations.forEach(function(declarator) {
+				instrumentedBody.push(tracingExpressionForVariableWithValue(declarator.id, declarator.id));
+			});
+		});
 
-		// });
+		ast.on("AssignmentExpression", function(expression, instrumentedBody) {
+			instrumentedBody.push(tracingExpressionForVariableWithValue(expression.left, expression.right));
+		});
 
 		ast.on("Program", function(program, instrumentedBody, defaultBehaviour){
 			defaultBehaviour();
