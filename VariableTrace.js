@@ -42,40 +42,13 @@
 				instrumentedBody.push(line);
 				if (line.type === "VariableDeclaration") {
 					line.declarations.forEach(function(declarator) {
-						var tracingExpression = {
-							type : "ExpressionStatement",
-							expression: {
-								type: "AssignmentExpression",
-								operator: "=",
-								left: {
-									type: "Identifier",
-									name: "__trace." + declarator.id.name,
-								},
-								right: {
-										type: "Identifier",
-										name: declarator.id.name
-								}
-							},
-						};
-						instrumentedBody.push(tracingExpression);
+						instrumentedBody.push(tracingExpressionForVariableWithValue(declarator.id, declarator.id));
 					});
 					
 				}
 
 				if (line.type === "ExpressionStatement" && line.expression.type === "AssignmentExpression") {
-					var tracingExpression = {
-						type : "ExpressionStatement",
-						expression: {
-							type: "AssignmentExpression",
-							operator: "=",
-							left: {
-								type: "Identifier",
-								name: "__trace." + line.expression.left.name,
-							},
-							right: line.expression.right
-						},
-					};
-					instrumentedBody.push(tracingExpression);
+					instrumentedBody.push(tracingExpressionForVariableWithValue(line.expression.left, line.expression.right));
 				}
 			});
 
@@ -85,6 +58,21 @@
 		ast.trace();
 		this.instrumentedSource = ast.generatedCode();
 	};
+
+	function tracingExpressionForVariableWithValue(variable, value) {
+		return {
+					type : "ExpressionStatement",
+					expression: {
+						type: "AssignmentExpression",
+						operator: "=",
+						left: {
+							type: "Identifier",
+							name: "__trace." + variable.name,
+						},
+						right: value
+					},
+				};
+	}
 
 	module.exports = VariableTrace;
 })();
