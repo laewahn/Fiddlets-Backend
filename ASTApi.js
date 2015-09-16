@@ -50,17 +50,19 @@
 				this._traceToken(declarator.id);
 			},
 
-			"FunctionExpression" : this.FunctionDeclaration,
+			"FunctionExpression" : this.Function,
+			"FunctionDeclaration" : this.Function,
 
-			"FunctionDeclaration" : function(theFunction) {
-				theFunction.params.forEach(function(param) {
-					this._traceToken(param);
-				}, this);
-	
+			"Function" : function(theFunction) {
+				this._traceToken(theFunction.params, "Function::Params");
 				this._traceToken(theFunction.body);
 			},
 
-			
+			"Function::Params" : function(params) {
+				params.forEach(function(param) {
+					this._traceToken(param);
+				}, this);
+			},
 
 			"ExpressionStatement": function(line) {
 				this._traceToken(line.expression);
