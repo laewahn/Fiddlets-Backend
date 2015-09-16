@@ -37,6 +37,11 @@
 	VariableTrace.prototype._instrumentCode = function() {
 		var ast = new ASTApi(esprima.parse(this.source), []);
 
+		ast.on("Program", function(program, instrumentedBody, defaultBehaviour){
+			defaultBehaviour();
+			program.body = instrumentedBody;
+		});
+
 		ast.on("Program::Body::Line", function(line, instrumentedBody, defaultBehaviour) {
 				instrumentedBody.push(line);
 				defaultBehaviour();
@@ -48,11 +53,6 @@
 
 		ast.on("AssignmentExpression", function(expression, instrumentedBody) {
 			instrumentedBody.push(tracingExpressionForVariableWithValue(expression.left, expression.right));
-		});
-
-		ast.on("Program", function(program, instrumentedBody, defaultBehaviour){
-			defaultBehaviour();
-			program.body = instrumentedBody;
 		});
 
 		ast.trace();
@@ -75,4 +75,5 @@
 	}
 
 	module.exports = VariableTrace;
+	
 })();
