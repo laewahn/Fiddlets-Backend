@@ -9,12 +9,10 @@
 
 	function VariableTrace(source) {
 		this.source = source;
-		this.assignmentsWithLocations = [];
 		this.trace = {};
 	}
 
 	VariableTrace.prototype.source = undefined;
-	VariableTrace.prototype.assignmentsWithLocations = undefined;
 	VariableTrace.prototype.trace = undefined;
 	VariableTrace.prototype.instrumentedSource = undefined;
 
