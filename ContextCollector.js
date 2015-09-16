@@ -154,13 +154,18 @@
 		var identifierMapping = new ASTApi(ast, new IdentifierMapping());
 		identifierMapping.setDebug(debug);
 
-		identifierMapping.on("VariableDeclaration", function(line, mapping, defaultBehaviour) {
-			line.declarations.forEach(function(declaration) {
-				mapping.setDeclarationForLine(declaration.id.name, declaration.loc.start.line);
-				mapping.setIdentifierForLine(declaration.id.name, declaration.loc.start.line);
-				mapping.setLocationForVariableName(declaration.id.name, declaration.loc);
-			});
+		// identifierMapping.on("VariableDeclaration", function(line, mapping, defaultBehaviour) {
+			// line.declarations.forEach(function(declaration) {
+				// mapping.setDeclarationForLine(declaration.id.name, declaration.loc.start.line);
+				// mapping.setIdentifierForLine(declaration.id.name, declaration.loc.start.line);
+				// mapping.setLocationForVariableName(declaration.id.name, declaration.loc);
+			// });
 			
+			// defaultBehaviour();
+		// });
+
+		identifierMapping.on("VariableDeclarator", function(declarator, mapping, defaultBehaviour) {
+			mapping.setDeclarationForLine(declarator.id.name, declarator.loc.start.line);
 			defaultBehaviour();
 		});
 		

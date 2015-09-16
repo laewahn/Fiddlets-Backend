@@ -33,13 +33,21 @@
 			},
 
 			"VariableDeclaration" : function(line) {
-				line.declarations.forEach(function(declaration) {
-					if (declaration.init !== null) {
-						this._traceToken(declaration.init);
-					}
+				this._traceToken(line.declarations, "VariableDeclaration::Declarations");
+			},
 
-					this._traceToken(declaration);
+			"VariableDeclaration::Declarations" : function(declarations) {
+				declarations.forEach(function(declarator){
+					this._traceToken(declarator);
 				}, this);
+			},
+
+			"VariableDeclarator" : function(declarator) {
+				if (declarator.init !== null) {
+					this._traceToken(declarator.init);
+				}
+
+				this._traceToken(declarator.id);
 			},
 
 			"FunctionDeclaration" : this._traceBodyAndParams,
@@ -61,11 +69,19 @@
 			},
 
 			"CallExpression" : function(expression) {
-				expression.arguments.forEach(function(argument) {
-					this._traceToken(argument);
-				}, this);
-
+				this._traceToken(expression.arguments, "CallExpression::Arguments");
 				this._traceToken(expression.callee);
+			},
+
+			"CallExpression::Arguments" : function(args) {
+				args.forEach(function(argument) {
+					this._traceToken(argument, "CallExpression::Arguments::Argument");
+				}, this);
+				
+			},
+
+			"CallExpression::Arguments::Argument" : function(argument) {
+				this._traceToken(argument);
 			},
 
 			"MemberExpression" : function(expression) {

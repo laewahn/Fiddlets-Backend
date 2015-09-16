@@ -42,10 +42,8 @@
 				defaultBehaviour();
 		});
 
-		ast.on("VariableDeclaration", function(line, instrumentedBody) {
-			line.declarations.forEach(function(declarator) {
-				instrumentedBody.push(tracingExpressionForVariableWithValue(declarator.id, declarator.id));
-			});
+		ast.on("VariableDeclarator", function(declarator, instrumentedBody) {
+			instrumentedBody.push(tracingExpressionForVariableWithValue(declarator.id, declarator.id));
 		});
 
 		ast.on("AssignmentExpression", function(expression, instrumentedBody) {
