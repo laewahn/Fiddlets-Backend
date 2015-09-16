@@ -20,44 +20,42 @@
 	VariableTrace.prototype.instrumentedSource = undefined;
 
 	VariableTrace.prototype.instrumentCode = function() {
-		var ast = new ASTApi(esprima.parse(this.source), this.assignmentsWithLocations);
-		ast.on("VariableDeclarator", function(declarator, collector, defaultBehaviour) {
-			collector.push(declarator.id.name);
+		var ast = new ASTApi(esprima.parse(this.source), []);
+
+		ast.on("VariableDeclarator", function(declarator, instrumentedBody, defaultBehaviour) {
+
+			var tracingExpression = {
+				type : "ExpressionStatement",
+				expression: {
+					type: "AssignmentExpression",
+					operator: "=",
+					left: {
+						type: "Identifier",
+						name: "__trace." + declarator.id.name,
+					},
+					right: {
+							type: "Identifier",
+							name: declarator.id.name
+					}
+				},
+			};
+
+			instrumentedBody.push(tracingExpression);
 		});
 
-		var instrumentedBody = [];
+		
 
-		ast.on("Program", function(program, collector, defaultBehaviour) {
+		ast.on("Program", function(program, instrumentedBody, defaultBehaviour) {
 			program.body.forEach(function(line, idx) {
 				instrumentedBody.push(line);
-				if (line.type === "VariableDeclaration") {
-					line.declarations.forEach(function(declarator) {
-						var tracingExpression = {
-							type : "ExpressionStatement",
-							expression: {
-								type: "AssignmentExpression",
-								operator: "=",
-								left: {
-									type: "Identifier",
-									name: "__trace." + declarator.id.name,
-								},
-								right: {
-										type: "Identifier",
-										name: declarator.id.name
-								}
-							},
-						};
-						instrumentedBody.push(tracingExpression);
-					});
-				}
 			});
 
 			defaultBehaviour();
+
+			program.body = instrumentedBody;
 		});
 
 		ast.trace();
-		ast.ast.body = instrumentedBody;
-
 		this.instrumentedSource = escodegen.generate(ast.ast);
 	};
 
@@ -65,6 +63,7 @@
 
 		function executeSandboxed(source) {
 			var __trace = {};
+			// console.log(source);
 			eval(source);
 
 			return __trace;
@@ -74,6 +73,7 @@
 	};
 
 	VariableTrace.prototype.getAssignments = function() {
+		return Object.keys(this.trace);
 		return this.assignmentsWithLocations;
 	};
 

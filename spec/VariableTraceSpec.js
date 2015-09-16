@@ -11,6 +11,8 @@ describe("The variable trace", function() {
 
 	it("should find all variable assignments in the code", function() {
 		testTrace.instrumentCode();
+		testTrace.runCode();
+		
 		expect(testTrace.getAssignments()).toEqual(["string", "regExpMetaCharacters", "replacement"]);
 		expect(testTrace.__trace).not.toBeDefined();
 	});
