@@ -5,7 +5,6 @@
 	"use strict";
 
 	var esprima = require("esprima");
-	var escodegen = require("escodegen");
 	var ASTApi = require("./ASTApi");
 
 	function VariableTrace(source) {
@@ -19,10 +18,28 @@
 	VariableTrace.prototype.trace = undefined;
 	VariableTrace.prototype.instrumentedSource = undefined;
 
-	VariableTrace.prototype.instrumentCode = function() {
+	VariableTrace.prototype.runCode = function() {
+
+		function executeSandboxed(source) {
+			var __trace = {};
+			// console.log(source);
+			eval(source);
+
+			return __trace;
+		}
+
+		this._instrumentCode();
+		this.trace = executeSandboxed(this.instrumentedSource);	
+	};
+
+	VariableTrace.prototype.getAssignments = function() {
+		return Object.keys(this.trace);
+	};
+
+	VariableTrace.prototype._instrumentCode = function() {
 		var ast = new ASTApi(esprima.parse(this.source), []);
 
-		ast.on("VariableDeclarator", function(declarator, instrumentedBody, defaultBehaviour) {
+		ast.on("VariableDeclarator", function(declarator, instrumentedBody) {
 
 			var tracingExpression = {
 				type : "ExpressionStatement",
@@ -46,7 +63,7 @@
 		
 
 		ast.on("Program", function(program, instrumentedBody, defaultBehaviour) {
-			program.body.forEach(function(line, idx) {
+			program.body.forEach(function(line) {
 				instrumentedBody.push(line);
 			});
 
@@ -56,25 +73,7 @@
 		});
 
 		ast.trace();
-		this.instrumentedSource = escodegen.generate(ast.ast);
-	};
-
-	VariableTrace.prototype.runCode = function() {
-
-		function executeSandboxed(source) {
-			var __trace = {};
-			// console.log(source);
-			eval(source);
-
-			return __trace;
-		}
-
-		this.trace = executeSandboxed(this.instrumentedSource);	
-	};
-
-	VariableTrace.prototype.getAssignments = function() {
-		return Object.keys(this.trace);
-		return this.assignmentsWithLocations;
+		this.instrumentedSource = ast.generatedCode();
 	};
 
 	module.exports = VariableTrace;

@@ -1,8 +1,10 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global module */
+/*global module, require */
 
 (function() {
 	"use strict";
+
+	var escodegen = require("escodegen");
 
 	function ASTApi(ast, collector) {
 		this.ast = ast;
@@ -107,6 +109,10 @@
 	ASTApi.prototype.trace = function() {
 		this._traceToken(this.ast);
 		return this.collector;
+	};
+
+	ASTApi.prototype.generatedCode = function() {
+		return escodegen.generate(this.ast);
 	};
 
 	ASTApi.prototype._traceToken = function(token) {		
