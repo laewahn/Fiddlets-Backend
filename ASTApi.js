@@ -50,8 +50,17 @@
 				this._traceToken(declarator.id);
 			},
 
-			"FunctionDeclaration" : this._traceBodyAndParams,
-			"FunctionExpression" : this._traceBodyAndParams,
+			"FunctionExpression" : this.FunctionDeclaration,
+
+			"FunctionDeclaration" : function(theFunction) {
+				theFunction.params.forEach(function(param) {
+					this._traceToken(param);
+				}, this);
+	
+				this._traceToken(theFunction.body);
+			},
+
+			
 
 			"ExpressionStatement": function(line) {
 				this._traceToken(line.expression);
@@ -111,8 +120,9 @@
 				this._traceToken(expression.argument);
 			},
 
-			"Literal" : this._noop,
-			"Identifier" : this._noop
+			"Literal" : this.Noop,
+			"Identifier" : this.Noop,
+			"NoOp" : function() {}
 		};
 	}
 
@@ -165,16 +175,6 @@
 			}
 		};
 	};
-
-	ASTApi.prototype._traceBodyAndParams = function(theFunction) {
-		theFunction.params.forEach(function(param) {
-			this._traceToken(param);
-		}, this);
-	
-		this._traceToken(theFunction.body);
-	};
-
-	ASTApi.prototype._noop = function() {};
 
 	module.exports = ASTApi;
 
