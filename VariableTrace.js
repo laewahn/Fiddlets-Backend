@@ -60,8 +60,6 @@
 			instrumentedBody.push(tracingExpression);
 		});
 
-		
-
 		ast.on("Program", function(program, instrumentedBody, defaultBehaviour) {
 			program.body.forEach(function(line) {
 				instrumentedBody.push(line);
