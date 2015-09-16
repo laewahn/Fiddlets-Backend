@@ -39,33 +39,47 @@
 	VariableTrace.prototype._instrumentCode = function() {
 		var ast = new ASTApi(esprima.parse(this.source), []);
 
-		ast.on("VariableDeclarator", function(declarator, instrumentedBody) {
-
-			var tracingExpression = {
-				type : "ExpressionStatement",
-				expression: {
-					type: "AssignmentExpression",
-					operator: "=",
-					left: {
-						type: "Identifier",
-						name: "__trace." + declarator.id.name,
-					},
-					right: {
-							type: "Identifier",
-							name: declarator.id.name
-					}
-				},
-			};
-
-			instrumentedBody.push(tracingExpression);
-		});
-
-		ast.on("Program", function(program, instrumentedBody, defaultBehaviour) {
+		ast.on("Program", function(program, instrumentedBody) {
 			program.body.forEach(function(line) {
 				instrumentedBody.push(line);
-			});
+				if (line.type === "VariableDeclaration") {
+					line.declarations.forEach(function(declarator) {
+						var tracingExpression = {
+							type : "ExpressionStatement",
+							expression: {
+								type: "AssignmentExpression",
+								operator: "=",
+								left: {
+									type: "Identifier",
+									name: "__trace." + declarator.id.name,
+								},
+								right: {
+										type: "Identifier",
+										name: declarator.id.name
+								}
+							},
+						};
+						instrumentedBody.push(tracingExpression);
+					});
+					
+				}
 
-			defaultBehaviour();
+				if (line.type === "ExpressionStatement" && line.expression.type === "AssignmentExpression") {
+					var tracingExpression = {
+						type : "ExpressionStatement",
+						expression: {
+							type: "AssignmentExpression",
+							operator: "=",
+							left: {
+								type: "Identifier",
+								name: "__trace." + line.expression.left.name,
+							},
+							right: line.expression.right
+						},
+					};
+					instrumentedBody.push(tracingExpression);
+				}
+			});
 
 			program.body = instrumentedBody;
 		});
