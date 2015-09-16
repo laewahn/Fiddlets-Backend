@@ -13,9 +13,17 @@
 
 		this.defaultVisitors = {
 			"Program" : function(program) {
-				program.body.forEach(function(line) {
-					this._traceToken(line);
+				this._traceToken(program.body, "Program::Body");
+			},
+
+			"Program::Body" : function(body) {
+				body.forEach(function(line) {
+					this._traceToken(line, "Program::Body::Line");
 				}, this);
+			},
+
+			"Program::Body::Line" : function(line) {
+				this._traceToken(line);
 			},
 
 			"BlockStatement" : function(block) {
@@ -115,10 +123,12 @@
 		return escodegen.generate(this.ast);
 	};
 
-	ASTApi.prototype._traceToken = function(token) {		
-		var defaultBehaviour = this._visitorForToken(token.type).bind(this);
+	ASTApi.prototype._traceToken = function(token, type) {	
+		var theType = type || token.type;
 
-		var visitor = this.visitors[token.type];
+		var defaultBehaviour = this._visitorForToken(theType).bind(this);
+		var visitor = this.visitors[theType];
+
 		if (visitor === undefined) {
 			visitor = defaultBehaviour;
 		}

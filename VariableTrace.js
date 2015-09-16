@@ -37,8 +37,7 @@
 	VariableTrace.prototype._instrumentCode = function() {
 		var ast = new ASTApi(esprima.parse(this.source), []);
 
-		ast.on("Program", function(program, instrumentedBody) {
-			program.body.forEach(function(line) {
+		ast.on("Program::Body::Line", function(line, instrumentedBody, defaultBehaviour) {
 				instrumentedBody.push(line);
 				if (line.type === "VariableDeclaration") {
 					line.declarations.forEach(function(declarator) {
@@ -50,8 +49,14 @@
 				if (line.type === "ExpressionStatement" && line.expression.type === "AssignmentExpression") {
 					instrumentedBody.push(tracingExpressionForVariableWithValue(line.expression.left, line.expression.right));
 				}
-			});
+		});
 
+		// ast.on("VariableDeclaration", function(line) {
+
+		// });
+
+		ast.on("Program", function(program, instrumentedBody, defaultBehaviour){
+			defaultBehaviour();
 			program.body = instrumentedBody;
 		});
 
