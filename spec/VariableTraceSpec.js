@@ -27,4 +27,16 @@ describe("The variable trace", function() {
 	it("should not leak the trace into the VariableTrace scope", function() {
 		expect(testTrace.__trace).not.toBeDefined();
 	});
+
+	it("should append the tracing code right after the line that declares/updates the variable that should be traced", function(){
+		testTrace = new VariableTrace("var foo;\nvar bar;\nfoo = bar;\n");
+		testTrace.runCode();
+
+		expect(testTrace.instrumentedSource).toEqual("var foo;\n" +
+													 "__trace.foo = foo;\n" +
+													 "var bar;\n" +
+													 "__trace.bar = bar;\n" +
+													 "foo = bar;\n" +
+													 "__trace.foo = bar;");
+	});
 });
