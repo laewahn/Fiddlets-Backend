@@ -4,7 +4,7 @@
 (function(){
 	"use strict";
 
-	var VARIABLE_TRACER_DOMAIN = "variableTracerDomain";
+	var VARIABLE_TRACER_DOMAIN = "VariableTraceDomain";
 	var VARIABLE_TRACER_VERSION = {major: 0, minor: 1};
 
 	var VariableTrace = require("./VariableTrace");
@@ -37,7 +37,7 @@
 	function getTraceForCode(sourceCode) {
 		var tracer = new VariableTrace(sourceCode);
 		tracer.runCode();
-		
+
 		return tracer.trace;
 	}
 
