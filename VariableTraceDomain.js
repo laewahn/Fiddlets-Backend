@@ -38,7 +38,21 @@
 		var tracer = new VariableTrace(sourceCode);
 		tracer.runCode();
 
-		return tracer.trace;
+		return JSON.stringify(tracer.trace, function(key, value) {
+			if(value instanceof RegExp) {
+				return {
+					__type : "RegExp",
+					global: value.global,
+					ignoreCase: value.ignoreCase,
+					multiline: value.multiline,
+					source: value.source
+				};
+			}
+
+			return value;
+		});
 	}
+
+	exports.getTraceForCode = getTraceForCode;
 
 })();
