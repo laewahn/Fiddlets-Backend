@@ -1,3 +1,8 @@
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
+/*global require, describe, it, expect */
+
+"use strict";
+
 describe("VariableTraceDomain", function() {
 	var VariableTraceDomain = require("../VariableTraceDomain.js");
 
@@ -31,6 +36,30 @@ describe("VariableTraceDomain", function() {
 			expect(revived.bla).toEqual(/\S/g);
 		});
 
+		it("should serialize functions", function() {
+			var trace = VariableTraceDomain.getTraceForCode("function fun(v) {console.log(v);};");
+
+			var traceObject = JSON.parse(trace);
+			expect(traceObject.fun.__type).toEqual("Function");
+			expect(traceObject.fun.source).toEqual("function fun(v) {\n    console.log(v);\n}");
+			expect(traceObject.fun.params).toEqual(["v"]);
+			
+			var revived = JSON.parse(trace, reviver);
+			expect(revived.fun instanceof Function).toBe(true);
+		});
+
+		it("should serialize functions that are declared in variables", function() {
+			var trace = VariableTraceDomain.getTraceForCode("var fun = function(v) {console.log(v);};");
+
+			var traceObject = JSON.parse(trace);
+			expect(traceObject.fun.__type).toEqual("Function");
+			expect(traceObject.fun.source).toEqual("function (v) {\n    console.log(v);\n}");
+			expect(traceObject.fun.params).toEqual(["v"]);
+			
+			var revived = JSON.parse(trace, reviver);
+			expect(revived.fun instanceof Function).toBe(true);
+		});
+
 		var reviver = function(key, value) {
 			if (value.__type && value.__type === "RegExp") {
 				var flags = [];
@@ -40,6 +69,11 @@ describe("VariableTraceDomain", function() {
 				if (value.ignoreCase) flags.push("i");
 
 				return new RegExp(value.source, flags);
+			}
+
+			if (value.__type && value.__type == "Function") {
+				/*jslint evil: true */
+				return new Function(value.params, value.body);
 			}
 			
 			return value;

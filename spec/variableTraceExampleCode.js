@@ -7,3 +7,7 @@ var  anArray = [];
 anArray.push("hello");
 
 string.replace(regExpMetaCharacters, replacement);
+
+function sayHello(name) {
+	console.log("Hello " + name);
+}

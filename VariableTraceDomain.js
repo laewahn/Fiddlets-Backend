@@ -34,6 +34,10 @@
 
 	};
 
+	var ASTApi = require("./ASTApi");
+	var esprima = require("esprima");
+	var escodegen = require("escodegen");
+
 	function getTraceForCode(sourceCode) {
 		var tracer = new VariableTrace(sourceCode);
 		tracer.runCode();
@@ -47,6 +51,33 @@
 					multiline: value.multiline,
 					source: value.source
 				};
+			}
+
+			if(value instanceof Function) {
+				var functionObject = {
+					__type: "Function",
+					source: value.toString()
+				};
+
+				var functionParser = new ASTApi(esprima.parse("var f = " + functionObject.source), functionObject);
+				
+				functionParser.on("FunctionExpression", function(theFunction, functionObject) {
+					functionObject.params = [];
+
+					theFunction.params.forEach(function(p) {
+						functionObject.params.push(p.name);	
+					});
+
+					var lines = [];
+					theFunction.body.body.forEach(function(line) {
+						lines.push(escodegen.generate(line));
+					});
+
+					functionObject.body = lines.join("\n");
+				});
+
+				functionParser.trace();
+				return functionObject;
 			}
 
 			return value;

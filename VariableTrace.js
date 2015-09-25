@@ -20,7 +20,8 @@
 
 		function executeSandboxed(source) {
 			var __trace = {};
-			// console.log(source);
+			// console.log("Source: " + source);
+			/*jslint evil: true */
 			eval(source);
 
 			return __trace;
@@ -53,6 +54,13 @@
 
 		ast.on("AssignmentExpression", function(expression, instrumentedBody) {
 			instrumentedBody.push(tracingExpressionForVariableWithValue(expression.left, expression.right));
+		});
+
+		ast.on("FunctionDeclaration", function(theFunction, instrumentedBody) {			
+			theFunction.type = "FunctionExpression";
+
+			var tracingExpressionForFunction = tracingExpressionForVariableWithValue(theFunction.id, theFunction);
+			instrumentedBody.push(tracingExpressionForFunction);
 		});
 
 		ast.trace();
