@@ -53,7 +53,7 @@
 		});
 
 		ast.on("AssignmentExpression", function(expression, instrumentedBody) {
-			instrumentedBody.push(tracingExpressionForVariableWithValue(expression.left, expression.right));
+			instrumentedBody.push(tracingExpressionForVariableWithValue(expression.left, expression.left));
 		});
 
 		ast.on("FunctionDeclaration", function(theFunction, instrumentedBody) {			

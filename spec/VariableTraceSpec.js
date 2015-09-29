@@ -42,6 +42,13 @@ describe("The variable trace", function() {
 													 "var bar;\n" +
 													 "__trace.bar = bar;\n" +
 													 "foo = bar;\n" +
-													 "__trace.foo = bar;");
+													 "__trace.foo = foo;");
+	});
+
+	it("should be able to trace self-assignments", function() {
+		testTrace = new VariableTrace("var tagsToCompile = \"<% %>\";\nvar spaceRe = /\\s+/;\ntagsToCompile = tagsToCompile.split(spaceRe, 2);");
+		testTrace.runCode();
+
+		expect(testTrace.trace.tagsToCompile).toEqual(["<%", "%>"]);
 	});
 });
