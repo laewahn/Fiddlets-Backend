@@ -44,10 +44,14 @@
 
 			"VariableDeclarator" : function(declarator) {
 				if (declarator.init !== null) {
-					this._traceToken(declarator.init);
+					this._traceToken(declarator.init, "VariableDeclarator::Init");
 				}
 
 				this._traceToken(declarator.id);
+			},
+
+			"VariableDeclarator::Init" : function(init) {
+				this._traceToken(init);
 			},
 
 			"FunctionExpression" : this.Function,
