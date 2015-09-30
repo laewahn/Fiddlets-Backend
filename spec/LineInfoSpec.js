@@ -70,6 +70,12 @@ describe("Line info tests", function() {
 			expect(result.lValue.type).toEqual("Function call");
 			expect(result.lValue.callee.name).toEqual("string");
 			expect(result.lValue.callee.range).toEqual([14, 20]);
+
+			expect(result.lValue.method.name).toEqual("replace");
+			expect(result.lValue.method.range).toEqual([21, 28]);
+
+			expect(result.lValue.params.values).toEqual(["htmlMetaCharacters", "fromEntityMap"]);
+			expect(result.lValue.params.range).toEqual([29, 62]);
 		});
 	});
 });

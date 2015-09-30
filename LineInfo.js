@@ -56,6 +56,23 @@
 				range: [call.callee.object.loc.start.column, call.callee.object.loc.end.column],
 				name: call.callee.object.name
 			};
+			info.lValue.method = {
+				name: call.callee.property.name,
+				range: [call.callee.property.loc.start.column, call.callee.property.loc.end.column]
+			};
+
+			var paramValues = [];
+			call.arguments.forEach(function(arg) {
+				paramValues.push(arg.name);
+			});
+
+			var argumentsCount = call.arguments.length;
+			var paramRange = [call.arguments[0].loc.start.column, call.arguments[argumentsCount -1 ].loc.end.column];
+
+			info.lValue.params = {
+				values: paramValues,
+				range: paramRange
+			};
 		});
 
 		astTraverse.trace();
