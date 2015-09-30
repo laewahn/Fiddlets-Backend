@@ -23,7 +23,7 @@
 			defaultBehaviour();
 		});
 
-		astTraverse.on("VariableDeclarator::Init", function(init, info) {
+		astTraverse.on("VariableDeclarator::Init", function(init, info, defaultBehaviour) {
 			info.lValue = {
 				name: init.name,
 				value: init.value,
@@ -31,6 +31,8 @@
 			};
 
 			info.type = "Initialisation";
+
+			defaultBehaviour();
 		});
 
 		astTraverse.on("AssignmentExpression", function(expression, info) {
@@ -46,6 +48,14 @@
 			};
 
 			info.type = "Assignment";
+		});
+
+		astTraverse.on("CallExpression", function(call, info) {
+			info.lValue.type = "Function call";
+			info.lValue.callee = {
+				range: [call.callee.object.loc.start.column, call.callee.object.loc.end.column],
+				name: call.callee.object.name
+			};
 		});
 
 		astTraverse.trace();

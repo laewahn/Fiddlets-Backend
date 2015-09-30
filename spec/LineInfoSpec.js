@@ -60,12 +60,16 @@ describe("Line info tests", function() {
 		});
 
 		it("should have all the information for a function call whose value is assigned to a variable", function() {
-			var testLine = "var escaped = String(string).replace(htmlMetaCharacters, fromEntityMap);";
+			var testLine = "var escaped = string.replace(htmlMetaCharacters, fromEntityMap);";
 			var result = lineInfo.infoForLine(testLine);
 
-			expect(result.type).toEqual("Assignment");
+			expect(result.type).toEqual("Initialisation");
 			expect(result.rValue.name).toEqual("escaped");
 			expect(result.rValue.range).toEqual([4, 11]);
+
+			expect(result.lValue.type).toEqual("Function call");
+			expect(result.lValue.callee.name).toEqual("string");
+			expect(result.lValue.callee.range).toEqual([14, 20]);
 		});
 	});
 });
