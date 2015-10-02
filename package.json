@@ -1,6 +1,6 @@
 {
     "name" : "ContextCollector",
-    "version" : "0.0.6",
+    "version" : "0.0.7",
     "description" : "Uses static analysis to find the context for a given code line",
     "author" : "Dennis Lewandowski",
     "engine" : "node >= 0.10.x",

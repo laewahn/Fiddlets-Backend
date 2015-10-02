@@ -13,7 +13,7 @@
 
 		astTraverse.on("VariableDeclarator", function(declaration, info, defaultBehaviour) {
 
-			info.rValue = {
+			info.lValue = {
 				name: declaration.id.name,
 				range: [declaration.id.loc.start.column, declaration.id.loc.end.column]
 			};
@@ -24,7 +24,7 @@
 		});
 
 		astTraverse.on("VariableDeclarator::Init", function(init, info, defaultBehaviour) {
-			info.lValue = {
+			info.rValue = {
 				name: init.name,
 				value: init.value,
 				range: [init.loc.start.column, init.loc.end.column]
@@ -51,12 +51,12 @@
 		});
 
 		astTraverse.on("CallExpression", function(call, info) {
-			info.lValue.type = "Function call";
-			info.lValue.callee = {
+			info.rValue.type = "Function call";
+			info.rValue.callee = {
 				range: [call.callee.object.loc.start.column, call.callee.object.loc.end.column],
 				name: call.callee.object.name
 			};
-			info.lValue.method = {
+			info.rValue.method = {
 				name: call.callee.property.name,
 				range: [call.callee.property.loc.start.column, call.callee.property.loc.end.column]
 			};
@@ -69,7 +69,7 @@
 			var argumentsCount = call.arguments.length;
 			var paramRange = [call.arguments[0].loc.start.column, call.arguments[argumentsCount -1 ].loc.end.column];
 
-			info.lValue.params = {
+			info.rValue.params = {
 				values: paramValues,
 				range: paramRange
 			};

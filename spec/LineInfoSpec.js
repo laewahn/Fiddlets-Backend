@@ -17,8 +17,8 @@ describe("Line info tests", function() {
 			var result = lineInfo.infoForLine(testLine);
 
 			expect(result.type).toEqual("Declaration");
-			expect(result.rValue.name).toEqual("foo");
-			expect(result.rValue.range).toEqual([4, 7]);
+			expect(result.lValue.name).toEqual("foo");
+			expect(result.lValue.range).toEqual([4, 7]);
 		});
 
 		it("should have the assigned to variables name and range for an initialisation", function() {
@@ -26,8 +26,8 @@ describe("Line info tests", function() {
 			var result = lineInfo.infoForLine(testLine);
 
 			expect(result.type).toEqual("Initialisation");
-			expect(result.rValue.name).toEqual("foo");
-			expect(result.rValue.range).toEqual([4, 7]);
+			expect(result.lValue.name).toEqual("foo");
+			expect(result.lValue.range).toEqual([4, 7]);
 		});
 
 		it("should have the assignment name and range for an initialisation with another variable", function() {
@@ -35,8 +35,8 @@ describe("Line info tests", function() {
 			var result = lineInfo.infoForLine(testLine);
 
 			expect(result.type).toEqual("Initialisation");
-			expect(result.lValue.name).toEqual("bar");
-			expect(result.lValue.range).toEqual([10, 13]);
+			expect(result.rValue.name).toEqual("bar");
+			expect(result.rValue.range).toEqual([10, 13]);
 		});
 
 		it("should have the value and range for an initialisation with a literal", function() {
@@ -44,8 +44,8 @@ describe("Line info tests", function() {
 			var result = lineInfo.infoForLine(testLine);
 
 			expect(result.type).toEqual("Initialisation");
-			expect(result.lValue.value).toEqual("bar");
-			expect(result.lValue.range).toEqual([10, 15]);
+			expect(result.rValue.value).toEqual("bar");
+			expect(result.rValue.range).toEqual([10, 15]);
 		});
 
 		it("should have the assigned to variables name and range as well as the assigned variable name and range for an assignment of a variable", function() {
@@ -64,18 +64,18 @@ describe("Line info tests", function() {
 			var result = lineInfo.infoForLine(testLine);
 
 			expect(result.type).toEqual("Initialisation");
-			expect(result.rValue.name).toEqual("escaped");
-			expect(result.rValue.range).toEqual([4, 11]);
+			expect(result.lValue.name).toEqual("escaped");
+			expect(result.lValue.range).toEqual([4, 11]);
 
-			expect(result.lValue.type).toEqual("Function call");
-			expect(result.lValue.callee.name).toEqual("string");
-			expect(result.lValue.callee.range).toEqual([14, 20]);
+			expect(result.rValue.type).toEqual("Function call");
+			expect(result.rValue.callee.name).toEqual("string");
+			expect(result.rValue.callee.range).toEqual([14, 20]);
 
-			expect(result.lValue.method.name).toEqual("replace");
-			expect(result.lValue.method.range).toEqual([21, 28]);
+			expect(result.rValue.method.name).toEqual("replace");
+			expect(result.rValue.method.range).toEqual([21, 28]);
 
-			expect(result.lValue.params.values).toEqual(["htmlMetaCharacters", "fromEntityMap"]);
-			expect(result.lValue.params.range).toEqual([29, 62]);
+			expect(result.rValue.params.values).toEqual(["htmlMetaCharacters", "fromEntityMap"]);
+			expect(result.rValue.params.range).toEqual([29, 62]);
 		});
 	});
 });
