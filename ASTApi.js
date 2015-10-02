@@ -75,7 +75,10 @@
 			"IfStatement": function(line) {
 				this._traceToken(line.test);
 				this._traceToken(line.consequent);
-				this._traceToken(line.alternate);
+
+				if (line.alternate !== null) {
+					this._traceToken(line.alternate);
+				}
 			},
 
 			"AssignmentExpression" : function(expression) {
