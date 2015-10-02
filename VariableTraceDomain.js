@@ -59,6 +59,10 @@
 					source: value.toString()
 				};
 
+				if(functionObject.source.indexOf("[native code]") !== -1) {
+					return value;
+				}
+
 				var functionParser = new ASTApi(esprima.parse("var f = " + functionObject.source), functionObject);
 				
 				functionParser.on("FunctionExpression", function(theFunction, functionObject) {
