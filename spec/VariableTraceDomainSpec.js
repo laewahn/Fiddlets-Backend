@@ -78,5 +78,17 @@ describe("VariableTraceDomain", function() {
 			
 			return value;
 		};
+
+		it("should not fail.", function() {
+			var fs = require("fs");
+			var code = fs.readFileSync("./spec/fail.js");
+			var trace = VariableTraceDomain.getTraceForCode(code);
+			console.log(trace);
+			var traceObject = JSON.parse(trace, reviver);
+
+			console.log(traceObject);
+			expect(traceObject.objectToString).toBeDefined();
+			expect(traceObject.isArray).toBeDefined();
+		});
 	});
 });
