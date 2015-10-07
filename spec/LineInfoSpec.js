@@ -16,7 +16,7 @@ describe("Line info tests", function() {
 			var testLine = "var foo;";
 			var result = lineInfo.infoForLine(testLine);
 
-			expect(result.type).toEqual("Declaration");
+			expect(result.type).toEqual(["Declaration"]);
 			expect(result.lValue.name).toEqual("foo");
 			expect(result.lValue.range).toEqual([4, 7]);
 		});
@@ -25,7 +25,7 @@ describe("Line info tests", function() {
 			var testLine = "var foo = \"bar\";";
 			var result = lineInfo.infoForLine(testLine);
 
-			expect(result.type).toEqual("Initialisation");
+			expect(result.type).toEqual(["Declaration", "Initialisation"]);
 			expect(result.lValue.name).toEqual("foo");
 			expect(result.lValue.range).toEqual([4, 7]);
 		});
@@ -34,7 +34,7 @@ describe("Line info tests", function() {
 			var testLine = "var foo = bar;";
 			var result = lineInfo.infoForLine(testLine);
 
-			expect(result.type).toEqual("Initialisation");
+			expect(result.type).toEqual(["Declaration", "Initialisation"]);
 			expect(result.rValue.name).toEqual("bar");
 			expect(result.rValue.range).toEqual([10, 13]);
 		});
@@ -43,7 +43,7 @@ describe("Line info tests", function() {
 			var testLine = "var foo = \"bar\";";
 			var result = lineInfo.infoForLine(testLine);
 
-			expect(result.type).toEqual("Initialisation");
+			expect(result.type).toEqual(["Declaration", "Initialisation"]);
 			expect(result.rValue.value).toEqual("bar");
 			expect(result.rValue.range).toEqual([10, 15]);
 		});
@@ -52,7 +52,7 @@ describe("Line info tests", function() {
 			var testLine = "foo = bar;";
 			var result = lineInfo.infoForLine(testLine);
 
-			expect(result.type).toEqual("Assignment");
+			expect(result.type).toEqual(["Assignment"]);
 			expect(result.lValue.name).toEqual("foo");
 			expect(result.lValue.range).toEqual([0, 3]);
 			expect(result.rValue.name).toEqual("bar");
@@ -63,7 +63,7 @@ describe("Line info tests", function() {
 			var testLine = "var escaped = string.replace(htmlMetaCharacters, fromEntityMap);";
 			var result = lineInfo.infoForLine(testLine);
 
-			expect(result.type).toEqual("Initialisation");
+			expect(result.type).toEqual(["Declaration", "Initialisation", "Function call"]);
 			expect(result.lValue.name).toEqual("escaped");
 			expect(result.lValue.range).toEqual([4, 11]);
 

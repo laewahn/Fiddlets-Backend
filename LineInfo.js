@@ -8,8 +8,11 @@
 	var ASTApi = require("./ASTApi");
 
 	exports.infoForLine = function(line) {
-		var lineInfo = {};
-		lineInfo.ast = esprima.parse(line, {loc: true});
+		var lineInfo = {
+			type : [],
+			ast : esprima.parse(line, {loc: true})
+		};
+		
 		var astTraverse = new ASTApi(lineInfo.ast, lineInfo);
 
 		astTraverse.on("VariableDeclarator", function(declaration, info, defaultBehaviour) {
@@ -19,7 +22,7 @@
 				range: [declaration.id.loc.start.column, declaration.id.loc.end.column]
 			};
 
-			info.type = "Declaration";
+			info.type.push("Declaration");
 
 			defaultBehaviour();
 		});
@@ -31,7 +34,7 @@
 				range: [init.loc.start.column, init.loc.end.column]
 			};
 
-			info.type = "Initialisation";
+			info.type.push("Initialisation");
 
 			defaultBehaviour();
 		});
@@ -48,11 +51,13 @@
 				range: [expression.right.loc.start.column, expression.right.loc.end.column]
 			};
 
-			info.type = "Assignment";
+			info.type.push("Assignment");
 		});
 
 		astTraverse.on("CallExpression", function(call, info) {
+			info.type.push("Function call");
 			info.rValue.type = "Function call";
+			
 			info.rValue.callee = {
 				range: [call.callee.object.loc.start.column, call.callee.object.loc.end.column],
 				name: call.callee.object.name
