@@ -29,6 +29,11 @@
 				name: "options",
 				type: "object",
 				description: "Additional options for parsing"
+			}],
+			[{
+				name: "result",
+				type: "object",
+				description: "The AST for the code."
 			}]
 		);
 	};
