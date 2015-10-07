@@ -4,7 +4,7 @@
 (function() {
 	"use strict";
 
-	var LINEINFO_DOMAIN = "EsprimaDomain";
+	var LINEINFO_DOMAIN = "LineInfoDomain";
 	var LINEINFO_VERSION = {major: 0, minor: 1};
 
 	var lineInfo = require("./LineInfo");
