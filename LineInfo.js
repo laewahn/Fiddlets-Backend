@@ -9,7 +9,8 @@
 
 	exports.infoForLine = function(line) {
 		var lineInfo = {};
-		var astTraverse = new ASTApi(esprima.parse(line, {loc: true}), lineInfo);
+		lineInfo.ast = esprima.parse(line, {loc: true});
+		var astTraverse = new ASTApi(lineInfo.ast, lineInfo);
 
 		astTraverse.on("VariableDeclarator", function(declaration, info, defaultBehaviour) {
 

@@ -77,5 +77,11 @@ describe("Line info tests", function() {
 			expect(result.rValue.params.values).toEqual(["htmlMetaCharacters", "fromEntityMap"]);
 			expect(result.rValue.params.range).toEqual([29, 62]);
 		});
+
+		it("should include the ast for the line", function() {
+			var result = lineInfo.infoForLine("tagsToCompile = tagsToCompile.split(spaceRe, 1);");
+
+			expect(result.ast).toBeDefined();
+		});
 	});
 });
