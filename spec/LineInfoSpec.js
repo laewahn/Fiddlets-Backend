@@ -74,8 +74,16 @@ describe("Line info tests", function() {
 			expect(result.rValue.method.name).toEqual("replace");
 			expect(result.rValue.method.range).toEqual([21, 28]);
 
-			expect(result.rValue.params.values).toEqual(["htmlMetaCharacters", "fromEntityMap"]);
+			expect(result.rValue.params.values[0].name).toEqual("htmlMetaCharacters");
+			expect(result.rValue.params.values[1].name).toEqual("fromEntityMap");
 			expect(result.rValue.params.range).toEqual([29, 62]);
+
+
+			result = lineInfo.infoForLine("tagsToCompile = tagsToCompile.split(spaceRe, 1);");
+
+			expect(result.rValue.callee.name).toEqual("tagsToCompile");
+			expect(result.rValue.params.values[0].name).toEqual("spaceRe");
+			expect(result.rValue.params.values[1].value).toEqual(1);
 		});
 
 		it("should include the ast for the line", function() {

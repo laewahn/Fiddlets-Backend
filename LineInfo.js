@@ -39,7 +39,7 @@
 			defaultBehaviour();
 		});
 
-		astTraverse.on("AssignmentExpression", function(expression, info) {
+		astTraverse.on("AssignmentExpression", function(expression, info, defaultBehaviour) {
 
 			info.lValue = {
 				name: expression.left.name,
@@ -51,13 +51,15 @@
 				range: [expression.right.loc.start.column, expression.right.loc.end.column]
 			};
 
+			defaultBehaviour();
+
 			info.type.push("Assignment");
 		});
 
 		astTraverse.on("CallExpression", function(call, info) {
 			info.type.push("Function call");
 			info.rValue.type = "Function call";
-			
+
 			info.rValue.callee = {
 				range: [call.callee.object.loc.start.column, call.callee.object.loc.end.column],
 				name: call.callee.object.name
@@ -69,7 +71,10 @@
 
 			var paramValues = [];
 			call.arguments.forEach(function(arg) {
-				paramValues.push(arg.name);
+				paramValues.push({
+					name: arg.name,
+					value: arg.value
+				});
 			});
 
 			var argumentsCount = call.arguments.length;
