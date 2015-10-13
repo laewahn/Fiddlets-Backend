@@ -25,8 +25,9 @@
 		var identifierMapping = getIdentifierMapping(source);
 
 		var context = new Context();
-		
-		sourceWrapper.identifiersInLine(lineNr).forEach(function(identifier){
+		var identifiers = sourceWrapper.identifiersInLine(lineNr);
+
+		identifiers.forEach(function(identifier){
 			identifierMapping.locationsFor(identifier).forEach(function(otherLineLocation) {
 				
 				if (otherLineLocation.start.line < lineNr) {
@@ -215,8 +216,10 @@
 
 	IdentifierCollector.prototype.traceFor = function(members) {
 		members.forEach(function(member){
-			this.astAPI.ast = this.ast[member];
-			this.astAPI.trace();
+			if (this.ast[member] !== null) {
+				this.astAPI.ast = this.ast[member];
+				this.astAPI.trace();	
+			}
 		}, this);
 
 		return this.identifiers;

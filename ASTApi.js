@@ -54,10 +54,12 @@
 				this._traceToken(init);
 			},
 
-			"FunctionExpression" : this.Function,
-			"FunctionDeclaration" : this.Function,
+			"FunctionExpression" : function(theFunction) {
+				this._traceToken(theFunction.params, "Function::Params");
+				this._traceToken(theFunction.body);
+			},
 
-			"Function" : function(theFunction) {
+			"FunctionDeclaration" : function(theFunction) {
 				this._traceToken(theFunction.params, "Function::Params");
 				this._traceToken(theFunction.body);
 			},
@@ -129,8 +131,8 @@
 				this._traceToken(expression.argument);
 			},
 
-			"Literal" : this.Noop,
-			"Identifier" : this.Noop,
+			"Literal" : function() {},
+			"Identifier" : function() {},
 			"NoOp" : function() {}
 		};
 	}
@@ -177,10 +179,9 @@
 
 	ASTApi.prototype._visitorForToken = function(type) {
 		var defaultVisitor = this.defaultVisitors[type];
-
 		return (defaultVisitor !== undefined) ? defaultVisitor : function(token) {
 			if (this.debug) {
-				console.error("Token not supported: " + token.type);
+				console.error("Token not supported: " + token.type /*+ " (" + token.loc.start.line + ":" + (token.loc.start.column + 1) + ")"*/);
 			}
 		};
 	};

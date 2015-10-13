@@ -3,11 +3,11 @@
 
 "use strict";
 
-describe("The study sample code", function() {
+var fs = require("fs");
+var contextCollectorAPI = require("../ContextCollector");
 	
-	var fs = require("fs");
-	var contextCollectorAPI = require("../ContextCollector");
-		
+
+describe("The study sample code", function() {		
 	var source = fs.readFileSync("spec/sampleSource.js", "utf8");
 
 	xit("should get the context locations for the easiest example line", function() {
@@ -22,9 +22,19 @@ describe("The study sample code", function() {
 		})).toBe(true);
 	});
 
-	it("should create a string representation of the context for the easiest line", function() {
+	xit("should create a string representation of the context for the easiest line", function() {
 		var context = contextCollectorAPI.contextForLineInSource(23, source);
 
 		expect(context.stringRepresentation()).toBe("var weatherInfoCSV = <#undefined#>;\nvar csvHeader = \"time,temperature,description\\n\";");
 	});
+});
+
+describe("mustache.js", function() {
+	var source = fs.readFileSync("spec/mustache.js", "utf8");
+	contextCollectorAPI.setDebug(true);
+	
+	it("should return the context for the first task", function(){
+		var context = contextCollectorAPI.contextForLineInSource(32, source);
+	});
+	
 });
