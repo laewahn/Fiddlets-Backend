@@ -5,16 +5,16 @@
 
 var fs = require("fs");
 var testSource = fs.readFileSync("spec/testSource.js", "utf8");
+var contextCollectAPI = require("../ContextCollector.js");
 
-describe("The test spec", function() {
+xdescribe("The test spec", function() {
 	it("should have the source", function() {
 		expect(testSource).toBeDefined();
 	});
 });
 
-describe("The line mapping", function() {
-	var contextCollectAPI = require("../ContextCollector.js");
-
+xdescribe("The line mapping", function() {
+	
 	it("should be accessible through require", function() {	
 		expect(contextCollectAPI).toBeDefined();
 	});
@@ -166,5 +166,16 @@ describe("The line mapping", function() {
 		// 3. Sort identifiers into scopes
 	});
 
+});
+
+describe("mustache.js", function() {
+	testSource = fs.readFileSync("./spec/mustache.js");
+	 it("should not crash", function() {
+	 	expect(testSource).toBeDefined();
+	 	var testContext = contextCollectAPI.getIdentifierMapping(testSource);
+	 	// console.log(testContext);
+	 	expect(testContext.locationsFor("regExpMetaCharacters")).toBeDefined();
+	 	console.log(testContext.locationsFor("regExpMetaCharacters"));
+	 });
 });
 
