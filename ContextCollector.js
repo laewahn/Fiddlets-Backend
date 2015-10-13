@@ -5,8 +5,10 @@
 	"use strict";
 
 	var esprima = require("esprima");
-	var ASTApi = require("./ASTApi");
 
+	var ASTApi = require("./ASTApi");
+	var Context = require("./Context");
+	
 	var debug = false;
 
 	exports.setDebug = function(debugFlag) {
@@ -55,46 +57,6 @@
 		return context;
 	};
 
-	function Context() {
-		this.unknownVariables = {};
-		this.lines = [];
-	}
-
-	Context.prototype.unknownVariables = undefined;
-	Context.prototype.lines = undefined;
-
-	Context.prototype.addUnknownVariableWithLocation = function(variableIdentifier, location) {
-		this.unknownVariables[variableIdentifier] = location;
-	};
-
-	Context.prototype.hasUnknownVariable = function(variableIdentifier) {
-		return this.unknownVariables[variableIdentifier] !== undefined;
-	};
-
-	Context.prototype.removeUnknownVariable = function(variableIdentifier) {
-		if (this.hasUnknownVariable(variableIdentifier)) {
-			this.unknownVariables[variableIdentifier] = undefined;
-		}
-	};
-
-	Context.prototype.addLineWithSourceAndLocation = function(lineSource, location) {
-		this.lines.push(new Line(lineSource, location));
-	};
-
-	Context.prototype.hasLine = function(line) {
-		return this.lines.some(function(e) {
-			return e.source === line;
-		});
-	};
-
-	Context.prototype.stringRepresentation = function() {
-		function byLocation(lineA, lineB) {
-			return lineA.startsBefore(lineB);
-		}
-
-		return this.lines.sort(byLocation).map(function(line) {return line.source;}).join("\n");
-	};
-
 	function generateDeclarationWithTag(variable, tag) {
 		var declarationAST = {
             						"type": "VariableDeclaration",
@@ -116,18 +78,6 @@
        	var escodegen = require("escodegen");
         return escodegen.generate(declarationAST);
 	}
-
-	function Line(source, location) {
-		this.source = source;
-		this.location = location;
-	}
-
-	Line.prototype.source = undefined;
-	Line.prototype.location = undefined;
-
-	Line.prototype.startsBefore = function(other) {
-		return this.location.start.line - other.location.start.line;
-	};
 
 	function SourceCode(source) {
 		this.source = source;
