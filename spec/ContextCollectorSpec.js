@@ -153,19 +153,32 @@ xdescribe("The line mapping", function() {
 				return line.start.line === 15 && line.end.line === 18;
 			})).toBe(true);
 		});
+	});
 
-		// BIG TODO: What about functional scope?
-		// If a variable is redeclared inside a function, it should not be accessible from the outside.
-		// The need for an abstraction of scope.
+});
+
+describe("Next up I", function() {
+
+	// BIG TODO: What about functional scope?
+	// The need for an abstraction of scope.
+	it("build scopes from inside-out", function() {
+		// context.scopeForLine(12);
+		//   - should have parent scope?
+		//   - should have sub-scopes?
+		
 		// context.linesForWithScopeOfLine("bla", 12);
 		// context.lineFor("bla").withScopeOfLine(12);
 
-		// Different approach:
-		// 1. Scan for all positions of all identifiers
-		// 2. Scan for scopes
-		// 3. Sort identifiers into scopes
+		fail("Make sure that scopes are created (JavaScript scope model)");
 	});
 
+	it("store identifiers of a scope inside that scope", function() {
+		fail("Make sure variables declared in that scope are captured");
+	});
+
+	it("keep a list of unknown variables for a scope", function() {
+		fail("Variables not defined in the scope should be declared unknown");
+	});
 });
 
 describe("mustache.js", function() {
@@ -175,7 +188,7 @@ describe("mustache.js", function() {
 	 	var testContext = contextCollectAPI.getIdentifierMapping(testSource);
 	 	// console.log(testContext);
 	 	expect(testContext.locationsFor("regExpMetaCharacters")).toBeDefined();
-	 	console.log(testContext.locationsFor("regExpMetaCharacters"));
+	 	// console.log(testContext.locationsFor("regExpMetaCharacters"));
 	 });
 });
 

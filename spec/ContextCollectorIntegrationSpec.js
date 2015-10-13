@@ -29,9 +29,9 @@ describe("The study sample code", function() {
 	});
 });
 
-xdescribe("mustache.js", function() {
+describe("mustache.js", function() {
 	var source = fs.readFileSync("spec/mustache.js", "utf8");
-	contextCollectorAPI.setDebug(true);
+	// contextCollectorAPI.setDebug(true);
 
 	it("should return the context for the first task", function(){
 		var context = contextCollectorAPI.contextForLineInSource(32, source);
