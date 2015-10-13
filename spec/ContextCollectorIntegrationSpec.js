@@ -29,10 +29,10 @@ describe("The study sample code", function() {
 	});
 });
 
-describe("mustache.js", function() {
+xdescribe("mustache.js", function() {
 	var source = fs.readFileSync("spec/mustache.js", "utf8");
 	contextCollectorAPI.setDebug(true);
-	
+
 	it("should return the context for the first task", function(){
 		var context = contextCollectorAPI.contextForLineInSource(32, source);
 	});
