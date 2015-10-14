@@ -136,18 +136,19 @@ describe("Functional scoping", function() {
 		var ContextCollector = contextCollectAPI.ContextCollector;
 		var collector = new ContextCollector(testSource);
 
-		xit("creates a context for a given simple line", function() {
+		it("creates a context for a given simple line", function() {
 			expect(collector.contextForLine(15)).toEqual("");
 			expect(collector.contextForLine(16)).toEqual("");
 			expect(collector.contextForLine(46)).toEqual("var globalVar = 5;");
 		});
 
-		xit("creates unknown tags for lines using unknown variables", function() {
-			expect(collector.contextForLine(12)).toEqual("var baz = <#undefined:baz:12#>;\nvar thirdLevel = \"third\";");
+		it("creates unknown tags for lines using unknown variables", function() {
+			expect(collector.contextForLine(37)).toEqual("var anonymous = <#undefined:anonymous:37#>;\nvar secret = \"stuff\";");
 		});
 
 		it("includes references to external identifiers in the context", function() {
-			expect(collector.contextForLine(11)).toEqual("var firstLevelSecondLevel = \"world\";")
+			expect(collector.contextForLine(11)).toEqual("var firstLevelSecondLevel = \"world\";");
+			expect(collector.contextForLine(12)).toEqual("var baz = <#undefined:baz:12#>;\nvar thirdLevel = \"third\";\nvar globalVar = 5;\nglobalVar = 7;");
 		});
 	});
 });
