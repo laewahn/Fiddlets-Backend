@@ -10,22 +10,13 @@ var contextCollectorAPI = require("../ContextCollector");
 describe("The study sample code", function() {		
 	var source = fs.readFileSync("spec/sampleSource.js", "utf8");
 
-	xit("should get the context locations for the easiest example line", function() {
-		var context = contextCollectorAPI.contextForLineInSource(23, source);
-		
-		expect(context.lines.some(function(line){
-			return line.start.line === 20 && line.end.line === 20;
-		})).toBe(true);
+	it("should create a string representation of the context for the easiest line", function() {
+		var ContextCollector = contextCollectorAPI.ContextCollector;
+		var collector = new ContextCollector(source);
 
-		expect(context.lines.some(function(line){
-			return line.start.line === 21 && line.end.line === 21;
-		})).toBe(true);
-	});
+		var context = collector.contextForLine(23, source);
 
-	xit("should create a string representation of the context for the easiest line", function() {
-		var context = contextCollectorAPI.contextForLineInSource(23, source);
-
-		expect(context.stringRepresentation()).toBe("var weatherInfoCSV = <#undefined#>;\nvar csvHeader = \"time,temperature,description\\n\";");
+		expect(context).toEqual("var weatherInfoCSV = <#undefined#>;\nvar csvHeader = \"time,temperature,description\\n\";");
 	});
 });
 
@@ -34,7 +25,34 @@ describe("mustache.js", function() {
 	// contextCollectorAPI.setDebug(true);
 
 	it("should return the context for the first task", function(){
-		var context = contextCollectorAPI.contextForLineInSource(32, source);
+		var ContextCollector = contextCollectorAPI.ContextCollector;
+		var collector = new ContextCollector(source);
+
+		var context = collector.contextForLine(32, source);
+		expect(context).toEqual("var string = <#undefined:string:32#>;\nvar regExpMetaCharacters = /[\\-\\[\\]{}()*+?.,\\\\\\^$|#\\s]/g;\nvar replacement = '\\\\$&';");
 	});
+
+	it("should return the context for the second task", function(){
+		var ContextCollector = contextCollectorAPI.ContextCollector;
+		var collector = new ContextCollector(source);
+
+		var context = collector.contextForLine(66, source);
+		console.log(context);
+		var expectedContext = "var string = <#undefined:string#>;\n" + 
+							  "var htmlMetaCharacters = /* Replace this: */ /\\S/g /* with your regexp */;\n" +
+							  "function fromEntityMap (s) {\n" +
+							  "\tvar entityMap = {\n" +
+							  "\t\t'&': '&amp;',\n" + 
+							  "\t\t'<': '&lt;',\n" + 
+							  "\t\t'>': '&gt;',\n" +
+							  "\t\t'\"': '&quot;',\n" +
+							  "\t\t\"'\": '&#39;',\n" + 
+							  "\t\t'/': '&#x2F;'\n" +
+							  "\t};\n" +
+							  "\treturn entityMap[s];\n" +
+							  "}";
+							  
+		expect(context).toEqual(expectedContext);
+	});	
 	
 });

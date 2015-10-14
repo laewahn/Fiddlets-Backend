@@ -63,7 +63,7 @@
       return entityMap[s];
     }
 
-    var escaped = String(string).replace(htmlMetaCharacters, fromEntityMap);
+    var escaped = string.replace(htmlMetaCharacters, fromEntityMap);
 
     return escaped;
   }

@@ -42,3 +42,5 @@ foo();
 	console.log(text);
 	globalVar = 3; // TODO: return globalVar
 });
+
+globalVar = 7;

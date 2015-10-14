@@ -47,7 +47,7 @@
 		var RESERVED_IDENTIFIERS = ["console"];
 
 		var astVisitor = new ASTApi(ast, scope);
-		astVisitor.setDebug(true);
+		// astVisitor.setDebug(true);
 
 		astVisitor.on("Program", function(program, scope, defaultBehaviour) {
 			scope.range = {start: program.loc.start.line, end: program.loc.end.line};
@@ -93,6 +93,13 @@
 			var identifierName = identifier.name;
 
 			if (RESERVED_IDENTIFIERS.indexOf(identifierName) === -1) {			
+
+				// Assumption: if someone declares a variable after using it, he deserves unexpected behaviour...
+				if (scope.getLocals().indexOf(identifierName) === -1 &&
+					scope.getUnknownVariables().indexOf(identifierName) === -1) {
+					scope.getUnknownVariables().push(identifierName);
+				}
+
 				if (identifiers[identifierName] === undefined) {
 					identifiers[identifierName] = [];	
 				}
@@ -171,6 +178,44 @@
 		return foundChildScope ? childScope : null;
 	};
 
+	Scope.prototype.resolveUnknowns = function() {
+		var updatedUnknowns = [];
+		this.getUnknownVariables().forEach(function(unknown) {
+			var parent = this.getParent();
+			if (parent === undefined) {
+				return;
+			}
+
+			parent.resolveUnknowns();
+
+			var themWhoKnowsUnknown = parent.whoKnows(unknown);
+			if (themWhoKnowsUnknown === null) {
+				updatedUnknowns.push(unknown);	
+			} else {
+				var unknownLocation = themWhoKnowsUnknown.getLocationsForIdentifier(unknown);
+				this.getLocationsForIdentifier(unknown).push(unknownLocation);
+			}
+			
+		}, this);
+		this.unknownVariables = updatedUnknowns;
+	};
+
+	Scope.prototype.whoKnows = function(identifier) {
+		if (this.getUnknownVariables().indexOf(identifier) !== -1) {
+			return null;
+		}
+
+		if (this.getIdentifiers().indexOf(identifier) !== -1) {
+			return this;
+		}
+
+		if (this.getParent() === undefined) {
+			return null;
+		}
+
+		return this.getParent().whoKnows(identifier);
+	}
+
 	Scope.prototype.parent = undefined;
 	Scope.prototype.getParent = function() {
 		return this.parent;
@@ -222,10 +267,16 @@
 		var source = this.source;
 		var lineLocations = [];
 
+		scope.resolveUnknowns();
+		var declarationsForUnknowns = this.createDeclarationsForUnknowns(identifiers, scope, line);
+
 		identifiers.forEach(function(identifier){
-			var locs = scope.getLocationsForIdentifier(identifier);
-			locs.forEach(function(location) {
-				if (location.start.line <= line) {
+			scope.getLocationsForIdentifier(identifier).forEach(function(location) {
+				var locationAlreadyAdded = lineLocations.some(function(loc) {
+					return loc.start.line === location.start.line;
+				});
+
+				if (location.start.line <= line && !locationAlreadyAdded && location.start.line !== line) {
 					lineLocations.push(location);
 				}
 			});
@@ -235,7 +286,19 @@
 			return source.getLine(loc.start.line).trim();
 		});
 
-		return contextLines.join("\n");
+		return declarationsForUnknowns.concat(contextLines).join("\n");
+	};
+
+	ContextCollector.prototype.createDeclarationsForUnknowns = function(identifiers, scope, line) {
+		var declarations = [];
+		identifiers.forEach(function(identifier) {
+			if (scope.getUnknownVariables().indexOf(identifier) !== -1) {
+				var declaration = generateDeclarationWithTag(identifier, "<#undefined:" + identifier + ":" + line + "#>");
+				declarations.push(declaration);
+			}
+		});
+
+		return declarations;
 	};
 
 	exports.ContextCollector = ContextCollector;

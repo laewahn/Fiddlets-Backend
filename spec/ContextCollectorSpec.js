@@ -13,6 +13,145 @@ xdescribe("The test spec", function() {
 	});
 });
 
+
+describe("Functional scoping", function() {
+	
+	testSource = fs.readFileSync("./spec/scopesAndUnknownsExample.js");
+	var globalScope = contextCollectAPI.scopeMappingForCode(testSource);
+	
+	var fooScope = globalScope.getContainedScope(0);
+	var barScope = fooScope.getContainedScope(0);
+	var uppercaseScope = fooScope.getContainedScope(1);
+	var anotherAnonymousScope = globalScope.getContainedScope(1);
+	var anAnonymousScope = globalScope.getContainedScope(2);
+	
+	it("builds scopes from outside-in", function() {	
+		
+		expect(globalScope.getContainedScopes().length).toBe(3);
+		expect(fooScope.getContainedScopes().length).toBe(2);
+
+		expect(fooScope).toBeDefined();
+		expect(barScope).toBeDefined();
+		expect(uppercaseScope).toBeDefined();
+		expect(anAnonymousScope).toBeDefined();
+		expect(anotherAnonymousScope).toBeDefined();
+	});
+
+	it("stores ranges of scopes", function() {
+		expect(globalScope.getRange()).toEqual({
+			start: 2,
+			end: 46
+		});
+
+		expect(fooScope.getRange()).toEqual({
+			start: 4,
+			end: 27
+		});
+		
+		expect(barScope.getRange()).toEqual({
+			start: 7,
+			end: 13
+		});
+
+		expect(uppercaseScope.getRange()).toEqual({
+			start: 20,
+			end: 24
+		});
+
+		expect(anotherAnonymousScope.getRange()).toEqual({
+			start: 38,
+			end: 44
+		});
+
+		expect(anAnonymousScope.getRange()).toEqual({
+			start: 33,
+			end: 38
+		});
+	});
+	
+	it("stores the parent scope for every scope", function() {
+		expect(globalScope.getParent()).toBeUndefined();
+		expect(fooScope.getParent()).toBe(globalScope);
+		expect(barScope.getParent()).toBe(fooScope);
+		expect(anotherAnonymousScope.getParent()).toBe(globalScope);
+		expect(anAnonymousScope.getParent()).toBe(globalScope);	
+	});
+	
+	it("stores local identifiers of a scope", function() {
+		expect(globalScope.getLocals()).toEqual(["globalVar", "foo"]);
+		expect(fooScope.getLocals()).toEqual(["bar", "firstLevel", "firstLevelSecondLevel", "arr"]);
+		expect(barScope.getLocals()).toEqual(["thirdLevel"]);
+		expect(anAnonymousScope.getLocals()).toEqual(["anAnonymous", "secret"]);
+		expect(anotherAnonymousScope.getLocals()).toEqual(["anotherAnonymous", "anonymousInner"]);
+
+		// Maybe include function name in locals?
+	});	
+
+	it("keeps a list of unknown variables for a scope", function() {
+		expect(barScope.getUnknownVariables()).toEqual(["baz", "firstLevelSecondLevel"]);
+		expect(anAnonymousScope.getUnknownVariables()).toEqual(["anonymous"]);
+		expect(anotherAnonymousScope.getUnknownVariables()).toEqual(["text", "globalVar"]);
+	});
+
+	it("keeps a list of identifiers used in that scope", function() {
+		expect(barScope.getIdentifiers()).toEqual(["thirdLevel", "firstLevelSecondLevel", "baz"]);
+		expect(anotherAnonymousScope.getIdentifiers()).toEqual(["anonymousInner", "text", "globalVar"]);
+	});
+
+	describe("ContextCollector", function() {
+		testSource = fs.readFileSync("./spec/scopesAndUnknownsExample.js", "utf8");
+		var ContextCollector = contextCollectAPI.ContextCollector;
+		var collector = new ContextCollector(testSource);
+
+		// TODO: scopes for line and column.
+		it("finds the scope for a line", function() {
+			expect(collector.getScopeForLine(1)).toEqual(globalScope);
+			expect(collector.getScopeForLine(2)).toEqual(globalScope);
+			expect(collector.getScopeForLine(11)).toEqual(barScope);
+			expect(collector.getScopeForLine(15)).toEqual(fooScope);
+			expect(collector.getScopeForLine(34)).toEqual(anAnonymousScope);
+			expect(collector.getScopeForLine(34)).toEqual(anAnonymousScope);
+			expect(collector.getScopeForLine(44)).toEqual(anotherAnonymousScope);
+		});
+
+		it("finds identifiers by line", function(){
+			expect(collector.getIdentifiersInLine(12)).toEqual(["thirdLevel", "baz"]);
+			expect(collector.getIdentifiersInLine(15)).toEqual(["firstLevel"]);
+			expect(collector.getIdentifiersInLine(17)).toEqual(["firstLevel", "bar"]);
+		});
+
+		it("can resolve the unknown values", function() {
+			var line11Scope = collector.getScopeForLine(11);		
+			expect(line11Scope.getUnknownVariables()).toEqual(["baz", "firstLevelSecondLevel"]);
+			expect(line11Scope.getLocationsForIdentifier("firstLevelSecondLevel").length).toEqual(1);
+			line11Scope.resolveUnknowns();
+
+			expect(line11Scope.getUnknownVariables()).toEqual(["baz"]);
+			expect(line11Scope.getLocationsForIdentifier("firstLevelSecondLevel").length).toEqual(2);
+		});
+	});
+
+	describe("Context creation", function() {
+		testSource = fs.readFileSync("./spec/scopesAndUnknownsExample.js", "utf8");
+		var ContextCollector = contextCollectAPI.ContextCollector;
+		var collector = new ContextCollector(testSource);
+
+		it("creates a context for a given simple line", function() {
+			expect(collector.contextForLine(15)).toEqual("");
+			expect(collector.contextForLine(16)).toEqual("");
+			expect(collector.contextForLine(46)).toEqual("var globalVar = 5;");
+		});
+
+		it("creates unknown tags for lines using unknown variables", function() {
+			expect(collector.contextForLine(12)).toEqual("var baz = <#undefined:baz:12#>;\nvar thirdLevel = \"third\";");
+		});
+
+		it("includes references to external identifiers in the context", function() {
+			fail("foo");
+		});
+	});
+});
+
 xdescribe("The line mapping", function() {
 	
 	it("should be accessible through require", function() {	
@@ -155,119 +294,6 @@ xdescribe("The line mapping", function() {
 		});
 	});
 
-});
-
-describe("Functional scoping", function() {
-	
-	testSource = fs.readFileSync("./spec/scopesAndUnknownsExample.js");
-	var globalScope = contextCollectAPI.scopeMappingForCode(testSource);
-	
-	var fooScope = globalScope.getContainedScope(0);
-	var barScope = fooScope.getContainedScope(0);
-	var uppercaseScope = fooScope.getContainedScope(1);
-	var anotherAnonymousScope = globalScope.getContainedScope(1);
-	var anAnonymousScope = globalScope.getContainedScope(2);
-	
-	it("builds scopes from outside-in", function() {	
-		
-		expect(globalScope.getContainedScopes().length).toBe(3);
-		expect(fooScope.getContainedScopes().length).toBe(2);
-
-		expect(fooScope).toBeDefined();
-		expect(barScope).toBeDefined();
-		expect(uppercaseScope).toBeDefined();
-		expect(anAnonymousScope).toBeDefined();
-		expect(anotherAnonymousScope).toBeDefined();
-	});
-
-	it("stores ranges of scopes", function() {
-		expect(globalScope.getRange()).toEqual({
-			start: 2,
-			end: 44
-		});
-
-		expect(fooScope.getRange()).toEqual({
-			start: 4,
-			end: 27
-		});
-		
-		expect(barScope.getRange()).toEqual({
-			start: 7,
-			end: 13
-		});
-
-		expect(uppercaseScope.getRange()).toEqual({
-			start: 20,
-			end: 24
-		});
-
-		expect(anotherAnonymousScope.getRange()).toEqual({
-			start: 38,
-			end: 44
-		});
-
-		expect(anAnonymousScope.getRange()).toEqual({
-			start: 33,
-			end: 38
-		});
-	});
-	
-	it("stores the parent scope for every scope", function() {
-		expect(globalScope.getParent()).toBeUndefined();
-		expect(fooScope.getParent()).toBe(globalScope);
-		expect(barScope.getParent()).toBe(fooScope);
-		expect(anotherAnonymousScope.getParent()).toBe(globalScope);
-		expect(anAnonymousScope.getParent()).toBe(globalScope);	
-	});
-	
-	it("stores identifiers of a scope", function() {
-		expect(globalScope.getLocals()).toEqual(["globalVar", "foo"]);
-		expect(fooScope.getLocals()).toEqual(["bar", "firstLevel", "firstLevelSecondLevel", "arr"]);
-		expect(barScope.getLocals()).toEqual(["thirdLevel"]);
-		expect(anAnonymousScope.getLocals()).toEqual(["anAnonymous", "secret"]);
-		expect(anotherAnonymousScope.getLocals()).toEqual(["anotherAnonymous", "anonymousInner"]);
-
-		// Maybe include function name in locals?
-	});	
-
-	it("keeps a list of unknown variables for a scope", function() {
-		expect(barScope.getUnknownVariables()).toEqual(["baz"]);
-		expect(anAnonymousScope.getUnknownVariables()).toEqual(["anonymous"]);
-		expect(anotherAnonymousScope.getUnknownVariables()).toEqual(["text"]);
-	});
-
-	it("keeps a list of identifiers used in that scope", function() {
-		expect(barScope.getIdentifiers()).toEqual(["thirdLevel", "firstLevelSecondLevel", "baz"]);
-		expect(anotherAnonymousScope.getIdentifiers()).toEqual(["anonymousInner", "text", "globalVar"]);
-	});
-
-	describe("ContextCollector", function() {
-		testSource = fs.readFileSync("./spec/scopesAndUnknownsExample.js", "utf8");
-		var ContextCollector = contextCollectAPI.ContextCollector;
-		var collector = new ContextCollector(testSource);
-
-		// TODO: scopes for line and column.
-		it("finds the scope for a line", function() {
-			expect(collector.getScopeForLine(1)).toEqual(globalScope);
-			expect(collector.getScopeForLine(2)).toEqual(globalScope);
-			expect(collector.getScopeForLine(11)).toEqual(barScope);
-			expect(collector.getScopeForLine(15)).toEqual(fooScope);
-			expect(collector.getScopeForLine(34)).toEqual(anAnonymousScope);
-			expect(collector.getScopeForLine(34)).toEqual(anAnonymousScope);
-			expect(collector.getScopeForLine(44)).toEqual(anotherAnonymousScope);
-		});
-
-		it("finds identifiers by line", function(){
-			expect(collector.getIdentifiersInLine(12)).toEqual(["thirdLevel", "baz"]);
-			expect(collector.getIdentifiersInLine(15)).toEqual(["firstLevel"]);
-			expect(collector.getIdentifiersInLine(17)).toEqual(["firstLevel", "bar"]);
-		});
-
-		it("creates a context for a given line", function() {
-			expect(collector.contextForLine(15)).toEqual("var firstLevel = \"Hello\";");
-			expect(collector.contextForLine(16)).toEqual("var firstLevelSecondLevel = \"world\";");
-		});
-	});
 });
 
 
