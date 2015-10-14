@@ -162,8 +162,24 @@ describe("Functional scoping", function() {
 		});
 
 		// TODO: scopes for line and column.
-		xit("can use references to stuff that has more than one line", function() {
-			fail("MAKE IT SO");
+		it("can use references to functions that have more than one line", function() {
+			var context = collector.contextForLine(17);
+
+			var expectedContext = 
+				"function bar(baz) {\n" +
+				"// Locals: [thirdLevel]\n" +
+				"// Unkown: [baz]\n" +
+				"var thirdLevel = \"third\";\n" +
+				"firstLevelSecondLevel = \"asdf\";\n" +
+				"console.log(baz + \" \" + thirdLevel + \" \" + globalVar);\n" +
+				"}\n" +
+				"var firstLevel = \"Hello\";";
+
+			expect(context).toEqual(expectedContext);
+		});
+
+		it("can use references to stuff that has more than one line", function() {
+			fail("next time...");
 		});
 	});
 });

@@ -301,7 +301,17 @@
 		});
 
 		var contextLines = lineLocations.map(function(loc) {
-			return source.getLine(loc.start.line).trim();
+			if (loc.start.line === loc.end.line) {
+				return source.getLine(loc.start.line).trim();
+			} else {
+				var current;
+				var multiLines = [];
+				for(current = loc.start.line; current <= loc.end.line; current++) {
+					multiLines.push(source.getLine(current).trim());
+				}
+				return multiLines.join("\n");
+			}
+			
 		});
 
 		return declarationsForUnknowns.concat(contextLines).join("\n");
