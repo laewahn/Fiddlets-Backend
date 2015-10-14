@@ -257,10 +257,10 @@ describe("Functional scoping", function() {
 			expect(collector.getScopeForLine(44)).toEqual(anotherAnonymousScope);
 		});
 
-		xit("finds identifiers by line", function(){
-			// expect(collector.getIdentifiersInLine(12)).toEqual(["baz", "thirdLevel"]);
+		it("finds identifiers by line", function(){
+			expect(collector.getIdentifiersInLine(12)).toEqual(["thirdLevel", "baz"]);
 			expect(collector.getIdentifiersInLine(15)).toEqual(["firstLevel"]);
-			expect(collector.getIdentifiersInLine(17)).toEqual(["bar", "firstLevel"]);
+			expect(collector.getIdentifiersInLine(17)).toEqual(["firstLevel", "bar"]);
 
 		});
 	});

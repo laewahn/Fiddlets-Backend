@@ -92,8 +92,11 @@
 			var identifiers = scope.locationsIndexedByIdentifiers;
 			var identifierName = identifier.name;
 
-			if (identifiers[identifierName] === undefined && RESERVED_IDENTIFIERS.indexOf(identifierName) === -1) {			
-				identifiers[identifier.name] = identifier.loc;
+			if (RESERVED_IDENTIFIERS.indexOf(identifierName) === -1) {			
+				if (identifiers[identifierName] === undefined) {
+					identifiers[identifierName] = [];	
+				}
+				identifiers[identifierName].push(identifier.loc);	
 			}
 		});
 
@@ -182,7 +185,7 @@
 	Scope.prototype.getLocationsIndexedByIdentifiers = function() {
 		return this.locationsIndexedByIdentifiers;
 	};
-	Scope.prototype.getLocationForIdentifier = function(identifier) {
+	Scope.prototype.getLocationsForIdentifier = function(identifier) {
 		return this.getLocationsIndexedByIdentifiers()[identifier];
 	};
 	Scope.prototype.getIdentifiers = function() {
@@ -200,12 +203,11 @@
 
 	ContextCollector.prototype.getIdentifiersInLine = function(line) {
 		var scope = this.getScopeForLine(line);
-		console.log(line + " - " + scope.getName() + ": " + scope.getIdentifiers());
 		var identifiersFilteredByLine = scope.getIdentifiers().filter(function(identifier) {
-			var location = scope.getLocationForIdentifier(identifier);
-			return (location.start.line <= line && line <= location.end.line);
+			return scope.getLocationsForIdentifier(identifier).some(function(location) {
+				return (location.start.line <= line && line <= location.end.line);
+			});
 		});
-		console.log(identifiersFilteredByLine);
 
 		return identifiersFilteredByLine;
 	};
