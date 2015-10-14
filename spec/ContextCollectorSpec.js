@@ -242,7 +242,7 @@ describe("Functional scoping", function() {
 	});
 
 	describe("ContextCollector", function() {
-		testSource = fs.readFileSync("./spec/scopesAndUnknownsExample.js");
+		testSource = fs.readFileSync("./spec/scopesAndUnknownsExample.js", "utf8");
 		var ContextCollector = contextCollectAPI.ContextCollector;
 		var collector = new ContextCollector(testSource);
 
@@ -261,7 +261,11 @@ describe("Functional scoping", function() {
 			expect(collector.getIdentifiersInLine(12)).toEqual(["thirdLevel", "baz"]);
 			expect(collector.getIdentifiersInLine(15)).toEqual(["firstLevel"]);
 			expect(collector.getIdentifiersInLine(17)).toEqual(["firstLevel", "bar"]);
+		});
 
+		it("creates a context for a given line", function() {
+			expect(collector.contextForLine(15)).toEqual("var firstLevel = \"Hello\";");
+			expect(collector.contextForLine(16)).toEqual("var firstLevelSecondLevel = \"world\";");
 		});
 	});
 });
@@ -273,13 +277,15 @@ describe("Functional scoping", function() {
 		// context.lineFor("bla").withScopeOfLine(12);
 
 xdescribe("mustache.js", function() {
-	testSource = fs.readFileSync("./spec/mustache.js");
+	testSource = fs.readFileSync("./spec/mustache.js", "utf8");
 	 it("should not crash", function() {
 	 	expect(testSource).toBeDefined();
-	 	var testContext = contextCollectAPI.getIdentifierMapping(testSource);
+	 	// var testContext = contextCollectAPI.getIdentifierMapping(testSource);
 	 	// console.log(testContext);
-	 	expect(testContext.locationsFor("regExpMetaCharacters")).toBeDefined();
+	 	// expect(testContext.locationsFor("regExpMetaCharacters")).toBeDefined();
 	 	// console.log(testContext.locationsFor("regExpMetaCharacters"));
+	 	var mustacheScope = contextCollectAPI.scopeMappingForCode(testSource);
+	 	expect(mustacheScope).toBeDefined();
 	 });
 });
 

@@ -193,8 +193,11 @@
 	};
 
 	function ContextCollector(source) {
+		this.source = new SourceCode(source);
 		this.globalScope = exports.scopeMappingForCode(source);
 	}
+
+	ContextCollector.prototype.source = undefined;
 
 	ContextCollector.prototype.globalScope = undefined;
 	ContextCollector.prototype.getScopeForLine = function(line) {
@@ -210,6 +213,29 @@
 		});
 
 		return identifiersFilteredByLine;
+	};
+
+	ContextCollector.prototype.contextForLine = function(line) {
+		var scope = this.getScopeForLine(line);
+		var identifiers = this.getIdentifiersInLine(line);
+
+		var source = this.source;
+		var lineLocations = [];
+
+		identifiers.forEach(function(identifier){
+			var locs = scope.getLocationsForIdentifier(identifier);
+			locs.forEach(function(location) {
+				if (location.start.line <= line) {
+					lineLocations.push(location);
+				}
+			});
+		});
+
+		var contextLines = lineLocations.map(function(loc) {
+			return source.getLine(loc.start.line).trim();
+		});
+
+		return contextLines.join("\n");
 	};
 
 	exports.ContextCollector = ContextCollector;
