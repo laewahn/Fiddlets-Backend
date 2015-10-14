@@ -56,7 +56,7 @@
 
 		function traceWithNewScope(fn, scope, defaultBehaviour) {
 
-			var functionScope = new Scope();
+			var functionScope = new Scope(fn.id.name);
 			functionScope.range = {start: fn.loc.start.line, end: fn.loc.end.line};
 
 			if (fn.type === "FunctionDeclaration") {
@@ -102,12 +102,18 @@
 		return scope;
 	};
 	
-	function Scope() {
+	function Scope(name) {
 		this.locals = [];
 		this.containedScopes = [];
 		this.unknownVariables = [];
 		this.identifiers = [];
+		this.name = name;
 	}
+
+	Scope.prototype.name = undefined;
+	Scope.prototype.getName = function() {
+		return this.name || "global";
+	};
 
 	Scope.prototype.range = undefined;
 	Scope.prototype.getRange = function() {
@@ -127,6 +133,21 @@
 		return this.getContainedScopes()[scopeIdx];
 	};
 
+	Scope.prototype.getScopeForLine = function(line) {
+		if (this.getContainedScopes().length === 0) {
+			var range = this.getRange();
+			return (range.start <= line && line <= range.end) ? this : null;
+		}
+
+		var childScope;
+		this.getContainedScopes().some(function(nextScope) {
+			childScope = nextScope.getScopeForLine(line);
+			return childScope !== null;
+		});
+		
+		return childScope;
+	};
+
 	Scope.prototype.parent = undefined;
 	Scope.prototype.getParent = function() {
 		return this.parent;
@@ -142,7 +163,17 @@
 		return this.identifiers;
 	};
 
+	function ContextCollector(source) {
+		this.globalScope = exports.scopeMappingForCode(source);
+	}
 
+	ContextCollector.prototype.globalScope = undefined;
+	ContextCollector.prototype.getScopeForLine = function(line) {
+		var scope = this.globalScope.getScopeForLine(line);
+		return scope !== null ? scope : this.globalScope;
+	};
+
+	exports.ContextCollector = ContextCollector;
 
 
 

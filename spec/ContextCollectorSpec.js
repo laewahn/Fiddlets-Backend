@@ -240,7 +240,24 @@ describe("Functional scoping", function() {
 		expect(barScope.getIdentifiers()).toEqual(["thirdLevel", "firstLevelSecondLevel", "baz"]);
 		expect(anotherAnonymousScope.getIdentifiers()).toEqual(["anonymousInner", "text", "globalVar"]);
 	});
+
+	describe("ContextCollector", function() {
+		testSource = fs.readFileSync("./spec/scopesAndUnknownsExample.js");
+		var ContextCollector = contextCollectAPI.ContextCollector;
+		var collector = new ContextCollector(testSource);
+
+		// TODO: scopes for line and column.
+		it("finds the scope for a line", function() {
+			expect(collector.getScopeForLine(1)).toEqual(globalScope);
+			expect(collector.getScopeForLine(2)).toEqual(globalScope);
+			expect(collector.getScopeForLine(11)).toEqual(barScope);
+			expect(collector.getScopeForLine(34)).toEqual(anAnonymousScope);
+			expect(collector.getScopeForLine(34)).toEqual(anAnonymousScope);
+			expect(collector.getScopeForLine(44)).toEqual(anotherAnonymousScope);
+		});
+	});
 });
+
 
 		// context.scopeForLine(12);
 		

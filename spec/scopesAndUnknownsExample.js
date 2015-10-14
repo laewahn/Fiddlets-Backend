@@ -40,5 +40,5 @@ foo();
 	// Unknown: [text]
 	var anonymousInner = "inner";
 	console.log(text);
-	globalVar = 3;
+	globalVar = 3; // TODO: return globalVar
 });
