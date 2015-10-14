@@ -42,7 +42,12 @@ describe("mustache.js", function() {
 
 		console.log(task2Scope.getLocals());
 		console.log(task2Scope.getLocationsForIdentifier("fromEntityMap"));
-		fail("Problem here is that the origin of fromEntityMap is not stored in the locations for the identifier.");
+
+		var fromEntityMapScope = task2Scope.getContainedScope(0);
+		expect(fromEntityMapScope.getName()).toEqual("fromEntityMap");
+		expect(fromEntityMapScope.getUnknownVariables()).toEqual(["entityMap"]);
+
+		fail("Problem here is that the entityMap is not noted as unknown by the escapeHTML scope.");
 
 		var context = collector.contextForLine(66, source);
 		console.log(context);
