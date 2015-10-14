@@ -9,7 +9,7 @@ function foo() {
 		// Unkown: [baz]
 		var thirdLevel = "third";
 		firstLevelSecondLevel = "asdf";
-		console.log(baz + " " + thirdLevel);
+		console.log(baz + " " + thirdLevel + " " + globalVar);
 	}
 
 	var firstLevel = "Hello";

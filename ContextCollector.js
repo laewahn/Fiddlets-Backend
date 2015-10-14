@@ -192,8 +192,11 @@
 			if (themWhoKnowsUnknown === null) {
 				updatedUnknowns.push(unknown);	
 			} else {
-				var unknownLocation = themWhoKnowsUnknown.getLocationsForIdentifier(unknown);
-				this.getLocationsForIdentifier(unknown).push(unknownLocation);
+				var unknownLocations = themWhoKnowsUnknown.getLocationsForIdentifier(unknown);
+				var locationsForIdentifier = this.getLocationsForIdentifier(unknown);
+				unknownLocations.forEach(function(unknownLocation) {
+					locationsForIdentifier.push(unknownLocation);
+				});
 			}
 			
 		}, this);
@@ -214,7 +217,7 @@
 		}
 
 		return this.getParent().whoKnows(identifier);
-	}
+	};
 
 	Scope.prototype.parent = undefined;
 	Scope.prototype.getParent = function() {
@@ -262,21 +265,30 @@
 
 	ContextCollector.prototype.contextForLine = function(line) {
 		var scope = this.getScopeForLine(line);
-		var identifiers = this.getIdentifiersInLine(line);
 
 		var source = this.source;
 		var lineLocations = [];
 
 		scope.resolveUnknowns();
+
+		var identifiers = this.getIdentifiersInLine(line);
 		var declarationsForUnknowns = this.createDeclarationsForUnknowns(identifiers, scope, line);
 
 		identifiers.forEach(function(identifier){
 			scope.getLocationsForIdentifier(identifier).forEach(function(location) {
+				
 				var locationAlreadyAdded = lineLocations.some(function(loc) {
 					return loc.start.line === location.start.line;
 				});
 
-				if (location.start.line <= line && !locationAlreadyAdded && location.start.line !== line) {
+				var scopeRange = scope.getRange();
+				var inScope = (scopeRange.start <= location.start.line && location.start.line <= scopeRange.end);
+				var inScopeButAfterCurrentLine = inScope && 
+												 (location.start.line <= line);
+
+				var inCurrentLine = location.start.line === line;
+				
+				if ((inScopeButAfterCurrentLine && !locationAlreadyAdded && !inCurrentLine) || !inScope) {
 					lineLocations.push(location);
 				}
 			});

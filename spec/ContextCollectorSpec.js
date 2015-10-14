@@ -88,13 +88,13 @@ describe("Functional scoping", function() {
 	});	
 
 	it("keeps a list of unknown variables for a scope", function() {
-		expect(barScope.getUnknownVariables()).toEqual(["baz", "firstLevelSecondLevel"]);
+		expect(barScope.getUnknownVariables()).toEqual(["baz", "firstLevelSecondLevel", "globalVar"]);
 		expect(anAnonymousScope.getUnknownVariables()).toEqual(["anonymous"]);
 		expect(anotherAnonymousScope.getUnknownVariables()).toEqual(["text", "globalVar"]);
 	});
 
 	it("keeps a list of identifiers used in that scope", function() {
-		expect(barScope.getIdentifiers()).toEqual(["thirdLevel", "firstLevelSecondLevel", "baz"]);
+		expect(barScope.getIdentifiers()).toEqual(["thirdLevel", "firstLevelSecondLevel", "globalVar", "baz"]);
 		expect(anotherAnonymousScope.getIdentifiers()).toEqual(["anonymousInner", "text", "globalVar"]);
 	});
 
@@ -115,14 +115,14 @@ describe("Functional scoping", function() {
 		});
 
 		it("finds identifiers by line", function(){
-			expect(collector.getIdentifiersInLine(12)).toEqual(["thirdLevel", "baz"]);
+			expect(collector.getIdentifiersInLine(12)).toEqual(["thirdLevel", "globalVar", "baz"]);
 			expect(collector.getIdentifiersInLine(15)).toEqual(["firstLevel"]);
 			expect(collector.getIdentifiersInLine(17)).toEqual(["firstLevel", "bar"]);
 		});
 
 		it("can resolve the unknown values", function() {
 			var line11Scope = collector.getScopeForLine(11);		
-			expect(line11Scope.getUnknownVariables()).toEqual(["baz", "firstLevelSecondLevel"]);
+			expect(line11Scope.getUnknownVariables()).toEqual(["baz", "firstLevelSecondLevel", "globalVar"]);
 			expect(line11Scope.getLocationsForIdentifier("firstLevelSecondLevel").length).toEqual(1);
 			line11Scope.resolveUnknowns();
 
@@ -136,18 +136,18 @@ describe("Functional scoping", function() {
 		var ContextCollector = contextCollectAPI.ContextCollector;
 		var collector = new ContextCollector(testSource);
 
-		it("creates a context for a given simple line", function() {
+		xit("creates a context for a given simple line", function() {
 			expect(collector.contextForLine(15)).toEqual("");
 			expect(collector.contextForLine(16)).toEqual("");
 			expect(collector.contextForLine(46)).toEqual("var globalVar = 5;");
 		});
 
-		it("creates unknown tags for lines using unknown variables", function() {
+		xit("creates unknown tags for lines using unknown variables", function() {
 			expect(collector.contextForLine(12)).toEqual("var baz = <#undefined:baz:12#>;\nvar thirdLevel = \"third\";");
 		});
 
 		it("includes references to external identifiers in the context", function() {
-			fail("foo");
+			expect(collector.contextForLine(11)).toEqual("var firstLevelSecondLevel = \"world\";")
 		});
 	});
 });
