@@ -54,7 +54,13 @@
 			defaultBehaviour();
 		});
 
-		function traceWithNewScope(fn, scope, defaultBehaviour) {
+		function traceFunctionWithNewScope(fn, scope, defaultBehaviour) {
+			var functionName = fn.id.name;
+			var identifiers = scope.locationsIndexedByIdentifiers;
+			if (identifiers[functionName] === undefined) {
+					identifiers[functionName] = [];	
+				}
+				identifiers[functionName].push(fn.loc);	
 
 			var functionScope = new Scope(fn.id.name);
 			functionScope.range = {start: fn.loc.start.line, end: fn.loc.end.line};
@@ -74,8 +80,8 @@
 			scope.containedScopes.push(functionScope);
 		}
 
-		astVisitor.on("FunctionDeclaration", traceWithNewScope);
-		astVisitor.on("FunctionExpression", traceWithNewScope);
+		astVisitor.on("FunctionDeclaration", traceFunctionWithNewScope);
+		astVisitor.on("FunctionExpression", traceFunctionWithNewScope);
 
 		astVisitor.on("Function::Params", function(params, scope) {
 			params.forEach(function(param) {

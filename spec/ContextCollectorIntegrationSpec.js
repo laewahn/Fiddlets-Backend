@@ -7,7 +7,7 @@ var fs = require("fs");
 var contextCollectorAPI = require("../ContextCollector");
 	
 
-describe("The study sample code", function() {		
+xdescribe("The study sample code", function() {		
 	var source = fs.readFileSync("spec/sampleSource.js", "utf8");
 
 	it("should create a string representation of the context for the easiest line", function() {
@@ -35,6 +35,14 @@ describe("mustache.js", function() {
 	it("should return the context for the second task", function(){
 		var ContextCollector = contextCollectorAPI.ContextCollector;
 		var collector = new ContextCollector(source);
+		// console.log(collector.getScopeForLine);
+
+		var task2Scope = collector.getScopeForLine(66);
+		task2Scope.resolveUnknowns();
+
+		console.log(task2Scope.getLocals());
+		console.log(task2Scope.getLocationsForIdentifier("fromEntityMap"));
+		fail("Problem here is that the origin of fromEntityMap is not stored in the locations for the identifier.");
 
 		var context = collector.contextForLine(66, source);
 		console.log(context);
@@ -51,7 +59,7 @@ describe("mustache.js", function() {
 							  "\t};\n" +
 							  "\treturn entityMap[s];\n" +
 							  "}";
-							  
+
 		expect(context).toEqual(expectedContext);
 	});	
 	

@@ -44,3 +44,18 @@ foo();
 });
 
 globalVar = 7;
+
+var multiLine = {
+	hasManyLines: true,
+	howMany: 0,
+	howsThat: "cool",
+	checkHowManyLines: function() {
+		var propsCount = Object.keys(this).length;
+		var lines = propsCount + 2 /* brackets */ + 4 /* function */;
+		return lines === this.howMany;
+	}
+}
+
+console.log(multiLine.checkHowManyLines());
+multiLine.howMany = 10;
+console.log(multiLine.checkHowManyLines());

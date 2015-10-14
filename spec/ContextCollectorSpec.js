@@ -40,7 +40,7 @@ describe("Functional scoping", function() {
 	it("stores ranges of scopes", function() {
 		expect(globalScope.getRange()).toEqual({
 			start: 2,
-			end: 46
+			end: 61
 		});
 
 		expect(fooScope.getRange()).toEqual({
@@ -78,13 +78,24 @@ describe("Functional scoping", function() {
 	});
 	
 	it("stores local identifiers of a scope", function() {
-		expect(globalScope.getLocals()).toEqual(["globalVar", "foo"]);
+		expect(globalScope.getLocals()).toEqual(["globalVar", "foo", "multiLine"]);
 		expect(fooScope.getLocals()).toEqual(["bar", "firstLevel", "firstLevelSecondLevel", "arr"]);
 		expect(barScope.getLocals()).toEqual(["thirdLevel"]);
 		expect(anAnonymousScope.getLocals()).toEqual(["anAnonymous", "secret"]);
 		expect(anotherAnonymousScope.getLocals()).toEqual(["anotherAnonymous", "anonymousInner"]);
 
-		// Maybe include function name in locals?
+		
+	});
+
+	// Maybe include own function name in locals?
+
+	it("stores declared functions of a scope", function() {
+		expect(fooScope.getLocationsForIdentifier("bar").length).toEqual(2);
+
+		expect(fooScope.getLocationsForIdentifier("bar")[0].start.line).toEqual(7);
+		expect(fooScope.getLocationsForIdentifier("bar")[0].start.column).toEqual(1);
+		expect(fooScope.getLocationsForIdentifier("bar")[0].end.line).toEqual(13);
+		expect(fooScope.getLocationsForIdentifier("bar")[0].end.column).toEqual(2);
 	});	
 
 	it("keeps a list of unknown variables for a scope", function() {
@@ -103,7 +114,6 @@ describe("Functional scoping", function() {
 		var ContextCollector = contextCollectAPI.ContextCollector;
 		var collector = new ContextCollector(testSource);
 
-		// TODO: scopes for line and column.
 		it("finds the scope for a line", function() {
 			expect(collector.getScopeForLine(1)).toEqual(globalScope);
 			expect(collector.getScopeForLine(2)).toEqual(globalScope);
@@ -117,7 +127,7 @@ describe("Functional scoping", function() {
 		it("finds identifiers by line", function(){
 			expect(collector.getIdentifiersInLine(12)).toEqual(["thirdLevel", "globalVar", "baz"]);
 			expect(collector.getIdentifiersInLine(15)).toEqual(["firstLevel"]);
-			expect(collector.getIdentifiersInLine(17)).toEqual(["firstLevel", "bar"]);
+			expect(collector.getIdentifiersInLine(17)).toEqual(["bar", "firstLevel"]);
 		});
 
 		it("can resolve the unknown values", function() {
@@ -149,6 +159,11 @@ describe("Functional scoping", function() {
 		it("includes references to external identifiers in the context", function() {
 			expect(collector.contextForLine(11)).toEqual("var firstLevelSecondLevel = \"world\";");
 			expect(collector.contextForLine(12)).toEqual("var baz = <#undefined:baz:12#>;\nvar thirdLevel = \"third\";\nvar globalVar = 5;\nglobalVar = 7;");
+		});
+
+		// TODO: scopes for line and column.
+		xit("can use references to stuff that has more than one line", function() {
+			fail("MAKE IT SO");
 		});
 	});
 });
