@@ -157,31 +157,97 @@ xdescribe("The line mapping", function() {
 
 });
 
-describe("Next up I", function() {
+describe("Functional scoping", function() {
+	
+	testSource = fs.readFileSync("./spec/scopesAndUnknownsExample.js");
+	var globalScope = contextCollectAPI.scopeMappingForCode(testSource);
+	
+	var fooScope = globalScope.getContainedScope(0);
+	var barScope = fooScope.getContainedScope(0);
+	var uppercaseScope = fooScope.getContainedScope(1);
+	var anotherAnonymousScope = globalScope.getContainedScope(1);
+	var anAnonymousScope = globalScope.getContainedScope(2);
+	
+	it("builds scopes from outside-in", function() {	
+		
+		expect(globalScope.getContainedScopes().length).toBe(3);
+		expect(fooScope.getContainedScopes().length).toBe(2);
 
-	// BIG TODO: What about functional scope?
-	// The need for an abstraction of scope.
-	it("build scopes from inside-out", function() {
+		expect(fooScope).toBeDefined();
+		expect(barScope).toBeDefined();
+		expect(uppercaseScope).toBeDefined();
+		expect(anAnonymousScope).toBeDefined();
+		expect(anotherAnonymousScope).toBeDefined();
+	});
+
+	it("stores ranges of scopes", function() {
+		expect(globalScope.getRange()).toEqual({
+			start: 2,
+			end: 44
+		});
+
+		expect(fooScope.getRange()).toEqual({
+			start: 4,
+			end: 27
+		});
+		
+		expect(barScope.getRange()).toEqual({
+			start: 7,
+			end: 13
+		});
+
+		expect(uppercaseScope.getRange()).toEqual({
+			start: 20,
+			end: 24
+		});
+
+		expect(anotherAnonymousScope.getRange()).toEqual({
+			start: 38,
+			end: 44
+		});
+
+		expect(anAnonymousScope.getRange()).toEqual({
+			start: 33,
+			end: 38
+		});
+	});
+	
+	it("stores the parent scope for every scope", function() {
+		expect(globalScope.getParent()).toBeUndefined();
+		expect(fooScope.getParent()).toBe(globalScope);
+		expect(barScope.getParent()).toBe(fooScope);
+		expect(anotherAnonymousScope.getParent()).toBe(globalScope);
+		expect(anAnonymousScope.getParent()).toBe(globalScope);	
+	});
+	
+	it("stores identifiers of a scope", function() {
+		expect(globalScope.getLocals()).toEqual(["globalVar", "foo"]);
+		expect(fooScope.getLocals()).toEqual(["bar", "firstLevel", "firstLevelSecondLevel", "arr"]);
+		expect(barScope.getLocals()).toEqual(["thirdLevel"]);
+		expect(anAnonymousScope.getLocals()).toEqual(["anAnonymous", "secret"]);
+		expect(anotherAnonymousScope.getLocals()).toEqual(["anotherAnonymous", "anonymousInner"]);
+
+		// Maybe include function name in locals?
+	});	
+
+	it("keeps a list of unknown variables for a scope", function() {
+		expect(barScope.getUnknownVariables()).toEqual(["baz"]);
+		expect(anAnonymousScope.getUnknownVariables()).toEqual(["anonymous"]);
+		expect(anotherAnonymousScope.getUnknownVariables()).toEqual(["text"]);
+	});
+
+	it("keeps a list of identifiers used in that scope", function() {
+		expect(barScope.getIdentifiers()).toEqual(["thirdLevel", "firstLevelSecondLevel", "baz"]);
+		expect(anotherAnonymousScope.getIdentifiers()).toEqual(["anonymousInner", "text", "globalVar"]);
+	});
+});
+
 		// context.scopeForLine(12);
-		//   - should have parent scope?
-		//   - should have sub-scopes?
 		
 		// context.linesForWithScopeOfLine("bla", 12);
 		// context.lineFor("bla").withScopeOfLine(12);
 
-		fail("Make sure that scopes are created (JavaScript scope model)");
-	});
-
-	it("store identifiers of a scope inside that scope", function() {
-		fail("Make sure variables declared in that scope are captured");
-	});
-
-	it("keep a list of unknown variables for a scope", function() {
-		fail("Variables not defined in the scope should be declared unknown");
-	});
-});
-
-describe("mustache.js", function() {
+xdescribe("mustache.js", function() {
 	testSource = fs.readFileSync("./spec/mustache.js");
 	 it("should not crash", function() {
 	 	expect(testSource).toBeDefined();

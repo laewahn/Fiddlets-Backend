@@ -2,7 +2,7 @@
 var globalVar = 5;
 
 function foo() {
-	// Locals: [bar, firstLevel, firstLevelSecondLevel]
+	// Locals: [bar, firstLevel, firstLevelSecondLevel, arr]
 	// Unkown: []
 	function bar(baz) {
 		// Locals: [thirdLevel]
@@ -40,4 +40,5 @@ foo();
 	// Unknown: [text]
 	var anonymousInner = "inner";
 	console.log(text);
+	globalVar = 3;
 });
