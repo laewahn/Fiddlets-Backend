@@ -77,7 +77,7 @@
 		astVisitor.on("FunctionDeclaration", traceWithNewScope);
 		astVisitor.on("FunctionExpression", traceWithNewScope);
 
-		astVisitor.on("Function::Params", function(params, scope, defaultBehaviour) {
+		astVisitor.on("Function::Params", function(params, scope) {
 			params.forEach(function(param) {
 				scope.getUnknownVariables().push(param.name);	
 			});
@@ -88,12 +88,12 @@
 			defaultBehaviour();
 		});
 
-		astVisitor.on("Identifier", function(identifier, scope, defaultBehaviour) {
-			var identifiers = scope.getIdentifiers();
+		astVisitor.on("Identifier", function(identifier, scope) {
+			var identifiers = scope.locationsIndexedByIdentifiers;
 			var identifierName = identifier.name;
 
-			if (identifiers.indexOf(identifierName) === -1 && RESERVED_IDENTIFIERS.indexOf(identifierName) === -1) {
-				identifiers.push(identifier.name);
+			if (identifiers[identifierName] === undefined && RESERVED_IDENTIFIERS.indexOf(identifierName) === -1) {			
+				identifiers[identifier.name] = identifier.loc;
 			}
 		});
 
@@ -106,7 +106,7 @@
 		this.locals = [];
 		this.containedScopes = [];
 		this.unknownVariables = [];
-		this.identifiers = [];
+		this.locationsIndexedByIdentifiers = {};
 		this.name = name;
 	}
 
@@ -134,18 +134,38 @@
 	};
 
 	Scope.prototype.getScopeForLine = function(line) {
-		if (this.getContainedScopes().length === 0) {
-			var range = this.getRange();
-			return (range.start <= line && line <= range.end) ? this : null;
-		}
 
-		var childScope;
-		this.getContainedScopes().some(function(nextScope) {
-			childScope = nextScope.getScopeForLine(line);
-			return childScope !== null;
-		});
+		var returnScope = this;
+
+		var hasChildScope = this.hasChildScopeInLine(line);
+		if (hasChildScope) {
+			returnScope = this.childScopeInLine(line).getScopeForLine(line);
+		}
 		
-		return childScope;
+		return returnScope;
+	};
+
+	Scope.prototype.hasChildScopeInLine = function(line) {
+		return this.getContainedScopes().some(function(nextScope){
+			var range = nextScope.getRange();
+			return (range.start <= line && line <= range.end);
+		});
+	};
+
+	Scope.prototype.childScopeInLine = function(line) {
+		var childScope;
+		var foundChildScope = this.getContainedScopes().some(function(nextScope) {
+			var range = nextScope.getRange();
+			var found = (range.start <= line && line <= range.end);
+			
+			if(found) {
+				childScope = nextScope;
+			}
+
+			return found;
+		});
+
+		return foundChildScope ? childScope : null;
 	};
 
 	Scope.prototype.parent = undefined;
@@ -158,9 +178,15 @@
 		return this.unknownVariables;
 	};
 
-	Scope.prototype.identifiers = undefined;
+	Scope.prototype.locationsIndexedByIdentifiers = undefined;
+	Scope.prototype.getLocationsIndexedByIdentifiers = function() {
+		return this.locationsIndexedByIdentifiers;
+	};
+	Scope.prototype.getLocationForIdentifier = function(identifier) {
+		return this.getLocationsIndexedByIdentifiers()[identifier];
+	};
 	Scope.prototype.getIdentifiers = function() {
-		return this.identifiers;
+		return Object.keys(this.locationsIndexedByIdentifiers);
 	};
 
 	function ContextCollector(source) {
@@ -169,8 +195,19 @@
 
 	ContextCollector.prototype.globalScope = undefined;
 	ContextCollector.prototype.getScopeForLine = function(line) {
-		var scope = this.globalScope.getScopeForLine(line);
-		return scope !== null ? scope : this.globalScope;
+		return this.globalScope.getScopeForLine(line);
+	};
+
+	ContextCollector.prototype.getIdentifiersInLine = function(line) {
+		var scope = this.getScopeForLine(line);
+		console.log(line + " - " + scope.getName() + ": " + scope.getIdentifiers());
+		var identifiersFilteredByLine = scope.getIdentifiers().filter(function(identifier) {
+			var location = scope.getLocationForIdentifier(identifier);
+			return (location.start.line <= line && line <= location.end.line);
+		});
+		console.log(identifiersFilteredByLine);
+
+		return identifiersFilteredByLine;
 	};
 
 	exports.ContextCollector = ContextCollector;

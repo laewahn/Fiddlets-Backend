@@ -251,9 +251,17 @@ describe("Functional scoping", function() {
 			expect(collector.getScopeForLine(1)).toEqual(globalScope);
 			expect(collector.getScopeForLine(2)).toEqual(globalScope);
 			expect(collector.getScopeForLine(11)).toEqual(barScope);
+			expect(collector.getScopeForLine(15)).toEqual(fooScope);
 			expect(collector.getScopeForLine(34)).toEqual(anAnonymousScope);
 			expect(collector.getScopeForLine(34)).toEqual(anAnonymousScope);
 			expect(collector.getScopeForLine(44)).toEqual(anotherAnonymousScope);
+		});
+
+		xit("finds identifiers by line", function(){
+			// expect(collector.getIdentifiersInLine(12)).toEqual(["baz", "thirdLevel"]);
+			expect(collector.getIdentifiersInLine(15)).toEqual(["firstLevel"]);
+			expect(collector.getIdentifiersInLine(17)).toEqual(["bar", "firstLevel"]);
+
 		});
 	});
 });
