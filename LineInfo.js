@@ -10,80 +10,74 @@
 	exports.infoForLine = function(line) {
 		var lineInfo = {
 			type : [],
+			info : {},
 			ast : esprima.parse(line, {loc: true})
 		};
 		
 		var astTraverse = new ASTApi(lineInfo.ast, lineInfo);
 
-		astTraverse.on("VariableDeclarator", function(declaration, info, defaultBehaviour) {
-
-			info.lValue = {
+		astTraverse.on("VariableDeclarator", function(declaration, lineInfo, defaultBehaviour) {
+			lineInfo.info.declaration = {
 				name: declaration.id.name,
-				range: [declaration.id.loc.start.column, declaration.id.loc.end.column]
+				range: [declaration.id.loc.start.column, declaration.id.loc.end.column]	
 			};
-
-			info.type.push("Declaration");
 
 			defaultBehaviour();
 		});
 
-		astTraverse.on("VariableDeclarator::Init", function(init, info, defaultBehaviour) {
-			info.rValue = {
+		astTraverse.on("VariableDeclarator::Init", function(init, lineInfo, defaultBehaviour) {
+			lineInfo.info.initialisation = {
+				type: init.type,
 				name: init.name,
 				value: init.value,
 				range: [init.loc.start.column, init.loc.end.column]
 			};
 
-			info.type.push("Initialisation");
+			defaultBehaviour();
+		});
+
+		astTraverse.on("AssignmentExpression", function(expression, lineInfo, defaultBehaviour) {
+			lineInfo.info.assignment = {
+				toName: expression.left.name,
+				toRange: [expression.left.loc.start.column, expression.left.loc.end.column],
+
+				fromType: expression.right.type,
+				fromName: expression.right.name,
+				fromRange: [expression.right.loc.start.column, expression.right.loc.end.column]
+			};
 
 			defaultBehaviour();
 		});
 
-		astTraverse.on("AssignmentExpression", function(expression, info, defaultBehaviour) {
-
-			info.lValue = {
-				name: expression.left.name,
-				range: [expression.left.loc.start.column, expression.left.loc.end.column]
-			};
-
-			info.rValue = {
-				name: expression.right.name,
-				range: [expression.right.loc.start.column, expression.right.loc.end.column]
-			};
-
-			defaultBehaviour();
-
-			info.type.push("Assignment");
-		});
-
-		astTraverse.on("CallExpression", function(call, info) {
-			info.type.push("Function call");
-			info.rValue.type = "Function call";
-
-			info.rValue.callee = {
-				range: [call.callee.object.loc.start.column, call.callee.object.loc.end.column],
-				name: call.callee.object.name
-			};
-			info.rValue.method = {
-				name: call.callee.property.name,
-				range: [call.callee.property.loc.start.column, call.callee.property.loc.end.column]
+		astTraverse.on("CallExpression", function(call, lineInfo) {
+			lineInfo.info.functionCall = {
+				type: call.type,
+				callee: {
+					name: call.callee.object.name,
+					range: [call.callee.object.loc.start.column, call.callee.object.loc.end.column]
+				},
+				method: {
+					name: call.callee.property.name,
+					range: [call.callee.property.loc.start.column, call.callee.property.loc.end.column]
+				},
+				params: []
 			};
 
 			var paramValues = [];
 			call.arguments.forEach(function(arg) {
-				paramValues.push({
+				lineInfo.info.functionCall.params.push({
+					type: arg.type,
 					name: arg.name,
-					value: arg.value
+					value: arg.value,
+					range: [arg.loc.start.column, arg.loc.end.column]
+				});
+				paramValues.push({
+					type: arg.type,
+					name: arg.name,
+					value: arg.value,
+					range: [arg.loc.start.column, arg.loc.end.column]
 				});
 			});
-
-			var argumentsCount = call.arguments.length;
-			var paramRange = [call.arguments[0].loc.start.column, call.arguments[argumentsCount -1 ].loc.end.column];
-
-			info.rValue.params = {
-				values: paramValues,
-				range: paramRange
-			};
 		});
 
 		astTraverse.trace();
