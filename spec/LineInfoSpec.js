@@ -24,8 +24,8 @@ describe("Line info tests", function() {
 			
 			expect(Object.keys(result.info)).toEqual(["declaration"]);
 			var declaration = result.info.declaration;
-			expect(declaration.name).toEqual("foo");
-			expect(declaration.range).toEqual([4, 7]);
+			expect(declaration.toName).toEqual("foo");
+			expect(declaration.toRange).toEqual([4, 7]);
 		});
 
 		it("should have the assigned to variables name and range for an initialisation", function() {
@@ -35,8 +35,8 @@ describe("Line info tests", function() {
 			expect(Object.keys(result.info)).toEqual(["declaration", "initialisation"]);
 			
 			var declaration = result.info.declaration;
-			expect(declaration.name).toEqual("foo");
-			expect(declaration.range).toEqual([4, 7]);
+			expect(declaration.toName).toEqual("foo");
+			expect(declaration.toRange).toEqual([4, 7]);
 		});
 
 		it("should have the assignment name and range for an initialisation with another variable", function() {
@@ -85,8 +85,8 @@ describe("Line info tests", function() {
 			expect(Object.keys(result.info)).toEqual(["declaration", "initialisation", "functionCall"]);
 
 			var declaration = result.info.declaration;
-			expect(declaration.name).toEqual("escaped");
-			expect(declaration.range).toEqual([4, 11]);
+			expect(declaration.toName).toEqual("escaped");
+			expect(declaration.toRange).toEqual([4, 11]);
 			
 			var initialisation = result.info.initialisation;
 			expect(initialisation.type).toEqual("CallExpression");

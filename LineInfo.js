@@ -18,8 +18,8 @@
 
 		astTraverse.on("VariableDeclarator", function(declaration, lineInfo, defaultBehaviour) {
 			lineInfo.info.declaration = {
-				name: declaration.id.name,
-				range: [declaration.id.loc.start.column, declaration.id.loc.end.column]	
+				toName: declaration.id.name,
+				toRange: [declaration.id.loc.start.column, declaration.id.loc.end.column]	
 			};
 
 			defaultBehaviour();
