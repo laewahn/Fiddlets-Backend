@@ -47,8 +47,8 @@ describe("Line info tests", function() {
 			
 			var initialisation = result.info.initialisation;
 			expect(initialisation.type).toEqual("Identifier");
-			expect(initialisation.name).toEqual("bar");
-			expect(initialisation.range).toEqual([10, 13]);
+			expect(initialisation.fromName).toEqual("bar");
+			expect(initialisation.fromRange).toEqual([10, 13]);
 		});
 
 		it("should have the value and range for an initialisation with a literal", function() {
@@ -59,8 +59,8 @@ describe("Line info tests", function() {
 
 			var initialisation = result.info.initialisation;
 			expect(initialisation.type).toEqual("Literal");
-			expect(initialisation.value).toEqual("bar");
-			expect(initialisation.range).toEqual([10, 15])
+			expect(initialisation.fromValue).toEqual("bar");
+			expect(initialisation.fromRange).toEqual([10, 15])
 		});
 
 		it("should have the assigned to variables name and range as well as the assigned variable name and range for an assignment of a variable", function() {

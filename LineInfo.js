@@ -28,9 +28,9 @@
 		astTraverse.on("VariableDeclarator::Init", function(init, lineInfo, defaultBehaviour) {
 			lineInfo.info.initialisation = {
 				type: init.type,
-				name: init.name,
-				value: init.value,
-				range: [init.loc.start.column, init.loc.end.column]
+				fromName: init.name,
+				fromValue: init.value,
+				fromRange: [init.loc.start.column, init.loc.end.column]
 			};
 
 			defaultBehaviour();
