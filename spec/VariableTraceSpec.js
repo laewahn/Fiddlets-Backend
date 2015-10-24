@@ -51,4 +51,15 @@ describe("The variable trace", function() {
 
 		expect(testTrace.trace.tagsToCompile).toEqual(["<%", "%>"]);
 	});
+
+	it("should include stack trace", function() {
+		testTrace = new VariableTrace("foo = bar;\n");
+		try {
+			testTrace.runCode();
+			fail("should thrown error.");
+		} catch(error) {
+			expect(error.stack.split("\n")[0]).toEqual("ReferenceError: bar is not defined");
+		}
+		
+	});
 });

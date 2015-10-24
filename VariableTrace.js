@@ -21,11 +21,15 @@
 		function executeSandboxed(source) {
 			var __trace = {};
 			// console.log("Source: " + source);
+			
 			/*jslint evil: true */
 			eval(source);
-
+			
 			return __trace;
 		}
+
+		/*jslint evil: true */
+		eval(this.source);
 
 		this._instrumentCode();
 		this.trace = executeSandboxed(this.instrumentedSource);	
