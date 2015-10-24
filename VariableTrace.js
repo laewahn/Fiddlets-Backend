@@ -28,9 +28,13 @@
 			return __trace;
 		}
 
-		/*jslint evil: true */
-		eval(this.source);
-
+		try {
+			/*jslint evil: true */
+			eval(this.source);
+		} catch (error) {
+			throw new Error(error.stack);
+		}
+		
 		this._instrumentCode();
 		this.trace = executeSandboxed(this.instrumentedSource);	
 	};

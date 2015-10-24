@@ -58,7 +58,8 @@ describe("The variable trace", function() {
 			testTrace.runCode();
 			fail("should thrown error.");
 		} catch(error) {
-			expect(error.stack.split("\n")[0]).toEqual("ReferenceError: bar is not defined");
+			console.log(error);
+			expect(error.stack.split("\n")[0]).toEqual("Error: ReferenceError: bar is not defined");
 		}
 		
 	});
