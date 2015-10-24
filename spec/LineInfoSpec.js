@@ -131,15 +131,15 @@ describe("Line info tests", function() {
 			expect(functionCall.params[2].name).toEqual("csvHeader");
 		});
 
+		it("should not fail for return statements", function() {
+			var result = lineInfo.infoForLine("return foo;");
+			expect(Object.keys(result.info)).toEqual(["returnStatement"]);
+		});
+
 		it("show me what happens when I call a constructor.", function(){
 			var result = lineInfo.infoForLine("var regexp = new Regexp(\"\\\\s*\");");
-			console.log(JSON.stringify(result.info, null, 2));
-
 			result = lineInfo.infoForLine("regexp = new Regexp(\"\\\\s*\");");
-			console.log(JSON.stringify(result.info, null, 2));
-
 			result = lineInfo.infoForLine("foo = String(bar);");
-			console.log(JSON.stringify(result.info, null, 2));
 		});
 
 	});

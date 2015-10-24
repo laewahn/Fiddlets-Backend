@@ -8,13 +8,21 @@
 	var ASTApi = require("./ASTApi");
 
 	exports.infoForLine = function(line) {
+		var wrappedLine = "function wrap() {\n" + line + "\n}";
+		var wrapperAst = esprima.parse(wrappedLine, {loc: true});
+		var ast = wrapperAst.body[0].body.body[0];
+
 		var lineInfo = {
 			type : [],
 			info : {},
-			ast : esprima.parse(line, {loc: true})
+			ast : ast
 		};
 		
 		var astTraverse = new ASTApi(lineInfo.ast, lineInfo);
+
+		astTraverse.on("ReturnStatement", function(returnStatement, lineInfo) {
+			lineInfo.info.returnStatement = {};
+		});
 
 		astTraverse.on("VariableDeclarator", function(declaration, lineInfo, defaultBehaviour) {
 			lineInfo.info.declaration = {
