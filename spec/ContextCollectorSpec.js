@@ -334,7 +334,7 @@ xdescribe("The line mapping", function() {
 		// context.linesForWithScopeOfLine("bla", 12);
 		// context.lineFor("bla").withScopeOfLine(12);
 
-xdescribe("mustache.js", function() {
+describe("mustache.js", function() {
 	testSource = fs.readFileSync("./spec/mustache.js", "utf8");
 	 it("should not crash", function() {
 	 	expect(testSource).toBeDefined();
@@ -345,5 +345,7 @@ xdescribe("mustache.js", function() {
 	 	var mustacheScope = contextCollectAPI.scopeMappingForCode(testSource);
 	 	expect(mustacheScope).toBeDefined();
 	 });
+
+
 });
 

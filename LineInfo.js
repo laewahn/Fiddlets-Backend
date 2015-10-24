@@ -50,18 +50,31 @@
 		});
 
 		astTraverse.on("CallExpression", function(call, lineInfo) {
-			lineInfo.info.functionCall = {
-				type: call.type,
-				callee: {
+			var callee;
+			if (call.callee.type === "MemberExpression") {
+				callee = {
 					name: call.callee.object.name,
 					range: [call.callee.object.loc.start.column, call.callee.object.loc.end.column]
-				},
-				method: {
-					name: call.callee.property.name,
-					range: [call.callee.property.loc.start.column, call.callee.property.loc.end.column]
-				},
+				}
+			} else if (call.callee.type === "Identifier") {
+				callee = {
+					name: call.callee.name,
+					range: [call.callee.loc.start.column, call.callee.loc.end.column]
+				}
+			}
+
+			lineInfo.info.functionCall = {
+				type: call.type,
+				callee: callee,
 				params: []
 			};
+
+			if (call.callee.property !== undefined) {
+				lineInfo.info.functionCall.method = {
+					name: call.callee.property.name,
+					range: [call.callee.property.loc.start.column, call.callee.property.loc.end.column]
+				};
+			}
 
 			var paramValues = [];
 			call.arguments.forEach(function(arg) {

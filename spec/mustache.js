@@ -54,16 +54,15 @@
     return !testRegExp(nonSpaceRe, string);
   }
 
-  function escapeHtml (string) {
-    // #2: Remove complete or parts of the regexp and split into temps
-    // Also hide entitiy map somewhere in the code
-    var htmlMetaCharacters = /[&<>"'\/]/g;
-
+  function escapeHtml (html) {
+    var htmlMetaCharacters = /<|>/;
+    
     function fromEntityMap (s) {
       return entityMap[s];
     }
-
-    var escaped = string.replace(htmlMetaCharacters, fromEntityMap);
+    
+    var htmlAsString = html;
+    var escaped = htmlAsString.replace(htmlMetaCharacters, fromEntityMap);
 
     return escaped;
   }

@@ -37,7 +37,7 @@ describe("mustache.js", function() {
 		var collector = new ContextCollector(source);
 		// console.log(collector.getScopeForLine);
 
-		var task2Scope = collector.getScopeForLine(66);
+		var task2Scope = collector.getScopeForLine(65);
 		task2Scope.resolveUnknowns();
 
 		console.log(task2Scope.getLocals());
@@ -49,7 +49,7 @@ describe("mustache.js", function() {
 
 		fail("Problem here is that the entityMap is not noted as unknown by the escapeHTML scope.");
 
-		var context = collector.contextForLine(66, source);
+		var context = collector.contextForLine(65, source);
 		console.log(context);
 		var expectedContext = "var string = <#undefined:string#>;\n" + 
 							  "var htmlMetaCharacters = /* Replace this: */ /\\S/g /* with your regexp */;\n" +

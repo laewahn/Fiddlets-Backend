@@ -60,7 +60,7 @@ describe("Line info tests", function() {
 			var initialisation = result.info.initialisation;
 			expect(initialisation.type).toEqual("Literal");
 			expect(initialisation.fromValue).toEqual("bar");
-			expect(initialisation.fromRange).toEqual([10, 15])
+			expect(initialisation.fromRange).toEqual([10, 15]);
 		});
 
 		it("should have the assigned to variables name and range as well as the assigned variable name and range for an assignment of a variable", function() {
@@ -129,6 +129,17 @@ describe("Line info tests", function() {
 			expect(functionCall.params[0].value).toEqual(0);
 			expect(functionCall.params[1].value).toEqual(0);
 			expect(functionCall.params[2].name).toEqual("csvHeader");
+		});
+
+		it("show me what happens when I call a constructor.", function(){
+			var result = lineInfo.infoForLine("var regexp = new Regexp(\"\\\\s*\");");
+			console.log(JSON.stringify(result.info, null, 2));
+
+			result = lineInfo.infoForLine("regexp = new Regexp(\"\\\\s*\");");
+			console.log(JSON.stringify(result.info, null, 2));
+
+			result = lineInfo.infoForLine("foo = String(bar);");
+			console.log(JSON.stringify(result.info, null, 2));
 		});
 
 	});
