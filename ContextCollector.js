@@ -288,7 +288,7 @@
 		// console.log("Identifiers in this scope: ", locationsOfIdentifiersInsideThisScope);
 
 		// console.log(JSON.stringify(scope.locationsIndexedByIdentifiers, null, 2));
-		
+		var context = this;
 		
 		function getLineLocationsForLine(context, line) {
 			var lineInfo = {};
@@ -303,7 +303,9 @@
 					return;
 				}
 				scope.getLocationsForIdentifier(identifier).forEach(function(location) {
-					
+					var lineScope = context.getScopeForLine(location.start.line);
+					console.log("Still in scope? " + lineScope === scope);
+
 					var locationAlreadyAdded = lineLocations.some(function(loc) {
 						return loc.start.line === location.start.line;
 					});
