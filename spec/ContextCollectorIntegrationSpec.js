@@ -51,19 +51,14 @@ describe("mustache.js", function() {
 
 		var context = collector.contextForLine(66, source);
 		// console.log(context);
-		var expectedContext = "var string = <#undefined:string#>;\n" + 
-							  "var htmlMetaCharacters = /* Replace this: */ /\\S/g /* with your regexp */;\n" +
-							  "function fromEntityMap (s) {\n" +
-							  "\tvar entityMap = {\n" +
-							  "\t\t'&': '&amp;',\n" + 
-							  "\t\t'<': '&lt;',\n" + 
-							  "\t\t'>': '&gt;',\n" +
-							  "\t\t'\"': '&quot;',\n" +
-							  "\t\t\"'\": '&#39;',\n" + 
-							  "\t\t'/': '&#x2F;'\n" +
-							  "\t};\n" +
-							  "\treturn entityMap[s];\n" +
-							  "}";
+		var expectedContext = "var html = <#undefined:html:66#>;\n" +
+    						   "var entityMap = <#undefined:entityMap:66#>;\n" +
+    						   "var htmlMetaCharacters = /<|>/;\n" +
+    						   "function fromEntityMap (s) {\n" +
+    						   "\tvar replacement = entityMap[s];\n" +
+    						   "\treturn replacement;\n" +
+    						   "}\n" + 
+    						   "var htmlAsString = String(html);";
 
 		expect(context).toEqual(expectedContext);
 	});

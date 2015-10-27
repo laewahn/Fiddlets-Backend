@@ -112,6 +112,15 @@
 			}
 		});
 
+		astVisitor.on("Function::Params", function(params, scope, defaultBehaviour) {
+			scope.params = params.map(function(p) {
+				return p.name;
+			});
+			// console.log("Params: ", scope.params);
+
+			defaultBehaviour();
+		});
+
 		astVisitor.trace();
 
 		return scope;
@@ -271,7 +280,7 @@
 	};
 
 	ContextCollector.prototype.contextForLine = function(firstLine) {
-		var scope = this.getScopeForLine(firstLine);
+		var topScope = this.getScopeForLine(firstLine);
 
 		var source = this.source;
 		var lineLocations = [];
@@ -279,18 +288,9 @@
 		// scope.resolveUnknowns();
 
 		// var identifiers = this.getIdentifiersInLine(firstLine);
-		var unknowns = scope.getUnknownVariables().slice();
-
-		// console.log("Unknown: ", unknowns);
-		// console.log(scope);
-
-		// var locationsOfIdentifiersInsideThisScope = scope.locationsIndexedByIdentifiers;
-		// console.log("Identifiers in this scope: ", locationsOfIdentifiersInsideThisScope);
-
-		// console.log(JSON.stringify(scope.locationsIndexedByIdentifiers, null, 2));
-		var context = this;
+		var unknowns = topScope.getUnknownVariables().slice();
 		
-		function getLineLocationsForLine(context, line) {
+		function getLineLocationsForLine(context, line, scope) {
 			var lineInfo = {};
 			var identifiers = context.getIdentifiersInLine(line);
 			
@@ -299,13 +299,25 @@
 
 			identifiers.forEach(function(identifier){
 				if (scope.getLocationsForIdentifier(identifier) === undefined) {
-					console.log("Undefined for " + identifier, "Line ", line);
 					return;
 				}
-				scope.getLocationsForIdentifier(identifier).forEach(function(location) {
-					var lineScope = context.getScopeForLine(location.start.line);
-					console.log("Still in scope? " + lineScope === scope);
 
+				scope.getLocationsForIdentifier(identifier).forEach(function(location) {
+
+					var lineScope = context.getScopeForLine(location.start.line);
+					console.log("Still in scope? ", lineScope === scope, "Line ", location.start.line);
+					if (lineScope !== scope) {
+						console.log(lineScope.getUnknownVariables());
+						var newScopeUnknowns = lineScope.getUnknownVariables();
+						newScopeUnknowns.forEach(function(id) {
+							if (lineScope.params.indexOf(id) === -1) {
+								console.log("this one is really new: " + id);
+								unknowns.push(id);
+								scope.getUnknownVariables().push(id);
+							}
+						});
+					}
+					
 					var locationAlreadyAdded = lineLocations.some(function(loc) {
 						return loc.start.line === location.start.line;
 					});
@@ -316,28 +328,27 @@
 													 (location.start.line >= firstLine);
 	
 					var unknown = unknowns.indexOf(identifier) !== -1;
-					if (unknown || inScopeButAfterFirstLine) {
+
+					if (unknown || inScopeButAfterFirstLine/* || isParam*/) {
 						return;
 					}
 					
 					var inCurrentLine = location.start.line === line;
 					if (!(locationAlreadyAdded || inCurrentLine) || !inScope) {
 						lineLocations.push(location);
-						getLineLocationsForLine(context, location.start.line);
+						getLineLocationsForLine(context, location.start.line, scope);
 					}
 				});
 			});
-
-			console.log(lineInfo);
 		}
 
-		getLineLocationsForLine(this, firstLine);
+		getLineLocationsForLine(this, firstLine, topScope);
 		
 		// console.log(lineLocations.map(function(ll) {
 		// 	return ll.start.line;
 		// }));
 
-		var declarationsForUnknowns = this.createDeclarationsForUnknowns(unknowns, scope, firstLine);
+		var declarationsForUnknowns = this.createDeclarationsForUnknowns(unknowns, topScope, firstLine);
 
 		function indentIfNotFirstOrLast(line, lineNo, firstLineNo, lastLineNo) {
 			if (lineNo !== firstLineNo && lineNo !== lastLineNo) {
