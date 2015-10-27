@@ -42,12 +42,12 @@
 
 	exports.scopeMappingForCode = function(source) {
 		var ast = esprima.parse(source, {loc: true});
-		var scope = new Scope();
+		var scope = new Scope("__global");
 
-		var RESERVED_IDENTIFIERS = ["console", "Object", "prototype", "toString", "hasOwnProperty", "replace", "String", "split", "Error"];
+		var RESERVED_IDENTIFIERS = ["console", "Object", "prototype", "toString", "hasOwnProperty", "replace", "String", "split", "Error", "JSON", "parse", "map", "splice", "length"];
 
 		var astVisitor = new ASTApi(ast, scope);
-		// astVisitor.setDebug(true);
+		astVisitor.setDebug(true);
 
 		astVisitor.on("Program", function(program, scope, defaultBehaviour) {
 			scope.range = {start: program.loc.start.line, end: program.loc.end.line};
@@ -55,7 +55,13 @@
 		});
 
 		function traceFunctionWithNewScope(fn, scope, defaultBehaviour) {
-			var functionName = fn.id.name;
+			var functionName;
+			if (fn.id !== undefined && fn.id !== null) {
+				 functionName = fn.id.name;
+			} else {
+				functionName = "anonymous:" + fn.loc.start.line;
+			}
+			
 
 			var identifiers = scope.locationsIndexedByIdentifiers;
 
@@ -65,13 +71,13 @@
 			
 			identifiers[functionName].push(fn.loc);	
 
-			var functionScope = new Scope(fn.id.name);
+			var functionScope = new Scope(functionName);
 			functionScope.range = {start: fn.loc.start.line, end: fn.loc.end.line};
 
 			if (fn.type === "FunctionDeclaration") {
-				scope.getLocals().push(fn.id.name);
+				scope.getLocals().push(functionName);
 			} else {
-				functionScope.getLocals().push(fn.id.name);
+				functionScope.getLocals().push(functionName);
 			}
 
 			functionScope.parent = scope;
@@ -123,6 +129,10 @@
 			defaultBehaviour();
 		});
 
+		astVisitor.on("Property", function(prop) {
+			console.log("Ignoring ", prop.key.name);
+		});
+
 		astVisitor.trace();
 
 		return scope;
@@ -133,6 +143,7 @@
 		this.containedScopes = [];
 		this.unknownVariables = [];
 		this.locationsIndexedByIdentifiers = {};
+		this.params = [];
 		this.name = name;
 	}
 
@@ -336,6 +347,9 @@
 		});
 
 		var locationsWithoutParams = locationsWithoutDuplicates.filter(function(loc) {
+			if (topScope.params === undefined) {
+				console.log(topScope);
+			}
 			return !topScope.params.some(function(p){
 				return p.loc.start.line === loc.start.line;
 			});

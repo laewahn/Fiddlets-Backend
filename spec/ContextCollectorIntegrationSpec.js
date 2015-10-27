@@ -20,7 +20,7 @@ xdescribe("The study sample code", function() {
 	});
 });
 
-describe("mustache.js", function() {
+xdescribe("mustache.js", function() {
 	var source = fs.readFileSync("spec/mustache.js", "utf8");
 	// contextCollectorAPI.setDebug(true);
 
@@ -82,4 +82,16 @@ describe("mustache.js", function() {
 		console.log("Context: " + context);
 	});
 	
+});
+
+describe("weather", function() {
+	it("should not fail", function() {
+		var source = fs.readFileSync("spec/weather.js", "utf8");
+
+		var ContextCollector = contextCollectorAPI.ContextCollector;
+		var collector = new ContextCollector(source);
+
+		var context = collector.contextForLine(38, source);
+		console.log(context);
+	});
 });
