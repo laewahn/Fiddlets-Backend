@@ -116,7 +116,6 @@
 			scope.params = params.map(function(p) {
 				return p.name;
 			});
-			// console.log("Params: ", scope.params);
 
 			defaultBehaviour();
 		});
@@ -191,32 +190,6 @@
 
 		return foundChildScope ? childScope : null;
 	};
-
-	// Scope.prototype.resolveUnknowns = function() {
-	// 	return;
-	// 	var updatedUnknowns = [];
-	// 	this.getUnknownVariables().forEach(function(unknown) {
-	// 		var parent = this.getParent();
-	// 		if (parent === undefined) {
-	// 			return;
-	// 		}
-
-	// 		parent.resolveUnknowns();
-
-	// 		var themWhoKnowsUnknown = parent.whoKnows(unknown);
-	// 		if (themWhoKnowsUnknown === null) {
-	// 			updatedUnknowns.push(unknown);	
-	// 		} else {
-	// 			var unknownLocations = themWhoKnowsUnknown.getLocationsForIdentifier(unknown);
-	// 			var locationsForIdentifier = this.getLocationsForIdentifier(unknown);
-	// 			unknownLocations.forEach(function(unknownLocation) {
-	// 				locationsForIdentifier.push(unknownLocation);
-	// 			});
-	// 		}
-			
-	// 	}, this);
-	// 	this.unknownVariables = updatedUnknowns;
-	// };
 
 	Scope.prototype.whoKnows = function(identifier) {
 		if (this.getUnknownVariables().indexOf(identifier) !== -1) {
@@ -302,13 +275,10 @@
 				scope.getLocationsForIdentifier(identifier).forEach(function(location) {
 
 					var lineScope = context.getScopeForLine(location.start.line);
-					console.log("Still in scope? ", lineScope === scope, "Line ", location.start.line);
 					if (lineScope !== scope) {
-						console.log(lineScope.getUnknownVariables());
 						var newScopeUnknowns = lineScope.getUnknownVariables();
 						newScopeUnknowns.forEach(function(id) {
 							if (lineScope.params.indexOf(id) === -1) {
-								console.log("this one is really new: " + id);
 								unknowns.push(id);
 								scope.getUnknownVariables().push(id);
 							}
@@ -402,59 +372,6 @@
 
 
 
-
-
-
-
-
-
-
-
-	exports.contextForLineInSource = function(lineNr, source) {
-		var sourceWrapper = new SourceCode(source);
-		var identifierMapping = getIdentifierMapping(source);
-
-		var context = new Context();
-		var identifiers = sourceWrapper.identifiersInLine(lineNr);
-
-		identifiers.forEach(function(identifier){
-			var locs = identifierMapping.locationsFor(identifier);
-			locs.forEach(function(otherLineLocation) {
-				
-				if (otherLineLocation.start.line < lineNr) {
-					var theLine = sourceWrapper.getLine(otherLineLocation.start.line);
-					var identifiersInOtherLine = sourceWrapper.identifiersInLine(otherLineLocation.start.line);
-					identifiersInOtherLine.remove(identifier);
-
-					if (identifiersInOtherLine.length !== 0) {
-						var foo = identifierMapping.variablesDeclaredInLocation(otherLineLocation);
-						if (otherLineLocation.start.line === otherLineLocation.end.line) {
-							if (foo !== undefined) {
-								foo.forEach(function(declaredVariable) {
-									var generatedDeclaration = generateDeclarationWithTag(declaredVariable, "<#undefined#>");
-									context.addLineWithSourceAndLocation(generatedDeclaration, otherLineLocation);
-								});
-	
-								console.log(JSON.stringify(identifiersInOtherLine));		
-							} else {
-								console.log("!!!!!!!!!!!!!!!!!!!");
-								console.log(identifier);
-								console.log(locs.map(function(l) {return JSON.stringify(l);}).join("\n"));
-								console.log("otherLineLocation", JSON.stringify(otherLineLocation));
-							}	
-						}						
-					} 
-					
-					if (identifiersInOtherLine.length === 0 && !context.hasLine(theLine)) {
-						context.removeUnknownVariable(identifier);
-						context.addLineWithSourceAndLocation(theLine, otherLineLocation);
-					}
-				}
-			});
-		}, this);
-
-		return context;
-	};
 
 	function generateDeclarationWithTag(variable, tag) {
 		var declarationAST = {
