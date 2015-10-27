@@ -73,5 +73,13 @@ describe("mustache.js", function() {
 		var fromEntityMapContext = collector.contextForLine(62, source);
 		expect(fromEntityMapContext).toEqual("var s = <#undefined:s:62#>;\nvar entityMap = <#undefined:entityMap:62#>;\nvar replacement = entityMap[s];");
 	});
+
+	it("should get the darn context..", function() {
+		var ContextCollector = contextCollectorAPI.ContextCollector;
+		var collector = new ContextCollector(source);
+
+		var context = collector.contextForLine(65, source);
+		console.log("Context: " + context);
+	});
 	
 });
