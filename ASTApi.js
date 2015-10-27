@@ -145,6 +145,73 @@
 				}
 			},
 
+			"ThrowStatement" : function(throwStatement) {
+				if (throwStatement.argument !== null) {
+					this._traceToken(throwStatement.argument);
+					
+				}
+			},
+
+			"NewExpression" : function(newExpression) {
+				this._traceToken(newExpression.callee);
+
+				if (newExpression.arguments !== null) {
+					newExpression.arguments.forEach(function(arg) {
+						this._traceToken(arg);
+					}, this);
+				}
+			},
+
+			"ObjectExpression" : function(objectExpression) {
+				objectExpression.properties.forEach(function(prop) {
+					this._traceToken(prop);
+				}, this);
+			},
+
+			"LogicalExpression" : function(logicalExpression) {
+				this._traceToken(logicalExpression.left);
+				this._traceToken(logicalExpression.right);
+			},
+
+			"UnaryExpression" : function(unaryExpression) {
+				this._traceToken(unaryExpression.argument);
+			},
+
+			"ArrayExpression" : function(arrayExpression) {
+				arrayExpression.elements.forEach(function(element){
+					this._traceToken(element);
+				}, this);
+			},
+
+			"WhileStatement" : function(whileStatement) {
+				this._traceToken(whileStatement.test);
+				this._traceToken(whileStatement.body);
+			},
+
+			"SwitchStatement" : function(switchStatement) {
+				this._traceToken(switchStatement.discriminant);
+				switchStatement.cases.forEach(function(switchCase) {
+					this._traceToken(switchCase);
+				}, this);
+			},
+
+			"SwitchCase" : function(switchCase) {
+				if (switchCase.test !== null) {
+					this._traceToken(switchCase.test);
+				}
+				
+				switchCase.consequent.forEach(function(consequent) {
+					this._traceToken(consequent);
+				}, this);
+			},
+
+			"Property" : function(prop) {
+				this._traceToken(prop.key);
+				this._traceToken(prop.value);
+			},
+
+			"BreakStatement" : function() {},
+			"ThisExpression" : function() {},
 			"Literal" : function() {},
 			"Identifier" : function() {},
 			"NoOp" : function() {}

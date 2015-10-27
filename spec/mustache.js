@@ -124,19 +124,23 @@
     var openingTagRe, closingTagRe, closingCurlyRe;
     function compileTags (tagsToCompile) {
       if (typeof tagsToCompile === 'string') {
-        console.log("foobar " + JSON.stringify(tagsToCompile));
         // #3: Change second argument to 1
         tagsToCompile = tagsToCompile.split(spaceRe, 2);
         // console.log("foobar " + JSON.stringify(tagsToCompile));
       }
         
       // #3: Remove the length guard
-      if (!isArray(tagsToCompile) || tagsToCompile.length !== 2)
+      if (tagsToCompile.length !== 2) 
         throw new Error('Invalid tags: ' + tagsToCompile);
 
-      openingTagRe = new RegExp(escapeRegExp(tagsToCompile[0]) + '\\s*');
-      closingTagRe = new RegExp('\\s*' + escapeRegExp(tagsToCompile[1]));
-      closingCurlyRe = new RegExp('\\s*' + escapeRegExp('}' + tagsToCompile[1]));
+      var escapedFirstTagRegexp = escapeRegExp(tagsToCompile[0]);
+      openingTagRe = new RegExp(escapedFirstTagRegexp + '\\s*');
+
+      var escapedSecondTagRegexp = escapeRegExp(tagsToCompile[1]);
+      closingTagRe = new RegExp('\\s*' + escapedSecondTagRegexp);
+
+      var escapedClosingCurly = escapeRegExp('}');
+      closingCurlyRe = new RegExp('\\s*' + escapedClosingCurly + escapedSecondTagRegexp);
     }
 
     // #4: Remove tags variable to make special tags spec fail

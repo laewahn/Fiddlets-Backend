@@ -78,7 +78,7 @@ describe("mustache.js", function() {
 		var ContextCollector = contextCollectorAPI.ContextCollector;
 		var collector = new ContextCollector(source);
 
-		var context = collector.contextForLine(65, source);
+		var context = collector.contextForLine(136, source);
 		console.log("Context: " + context);
 	});
 	
