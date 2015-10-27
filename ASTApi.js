@@ -106,6 +106,14 @@
 
 			"MemberExpression" : function(expression) {
 				this._traceToken(expression.object);
+				try {
+					
+					this._traceToken(expression.property);	
+				} catch (error) {
+					console.log(expression.property);
+				} finally {
+					this._traceToken(expression.property);
+				}
 			},
 
 
@@ -129,6 +137,12 @@
 
 			"UpdateExpression" : function(expression) {
 				this._traceToken(expression.argument);
+			},
+
+			"ReturnStatement" : function(returnStatement) {
+				if (returnStatement.argument !== null) {
+					this._traceToken(returnStatement.argument);	
+				}
 			},
 
 			"Literal" : function() {},

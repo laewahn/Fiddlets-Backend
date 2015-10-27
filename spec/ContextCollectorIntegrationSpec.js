@@ -37,20 +37,20 @@ describe("mustache.js", function() {
 		var collector = new ContextCollector(source);
 		// console.log(collector.getScopeForLine);
 
-		var task2Scope = collector.getScopeForLine(65);
-		task2Scope.resolveUnknowns();
+		var task2Scope = collector.getScopeForLine(66);
+		// task2Scope.resolveUnknowns();
 
-		console.log(task2Scope.getLocals());
-		console.log(task2Scope.getLocationsForIdentifier("fromEntityMap"));
+		// console.log(task2Scope.getLocals());
+		// console.log(task2Scope.getLocationsForIdentifier("fromEntityMap"));
 
 		var fromEntityMapScope = task2Scope.getContainedScope(0);
 		expect(fromEntityMapScope.getName()).toEqual("fromEntityMap");
-		expect(fromEntityMapScope.getUnknownVariables()).toEqual(["entityMap"]);
+		expect(fromEntityMapScope.getUnknownVariables()).toEqual(["s" ,"entityMap"]);
 
-		fail("Problem here is that the entityMap is not noted as unknown by the escapeHTML scope.");
+		// fail("Problem here is that the entityMap is not noted as unknown by the escapeHTML scope.");
 
-		var context = collector.contextForLine(65, source);
-		console.log(context);
+		var context = collector.contextForLine(66, source);
+		// console.log(context);
 		var expectedContext = "var string = <#undefined:string#>;\n" + 
 							  "var htmlMetaCharacters = /* Replace this: */ /\\S/g /* with your regexp */;\n" +
 							  "function fromEntityMap (s) {\n" +
@@ -66,6 +66,14 @@ describe("mustache.js", function() {
 							  "}";
 
 		expect(context).toEqual(expectedContext);
-	});	
+	});
+
+	it("should return the context for the fromEntityMap function", function() {
+		var ContextCollector = contextCollectorAPI.ContextCollector;
+		var collector = new ContextCollector(source);
+
+		var fromEntityMapContext = collector.contextForLine(62, source);
+		expect(fromEntityMapContext).toEqual("var s = <#undefined:s:62#>;\nvar entityMap = <#undefined:entityMap:62#>;\nvar replacement = entityMap[s];");
+	});
 	
 });

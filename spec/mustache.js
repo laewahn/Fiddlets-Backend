@@ -58,10 +58,11 @@
     var htmlMetaCharacters = /<|>/;
     
     function fromEntityMap (s) {
-      return entityMap[s];
+      var replacement = entityMap[s];
+      return replacement;
     }
     
-    var htmlAsString = html;
+    var htmlAsString = String(html);
     var escaped = htmlAsString.replace(htmlMetaCharacters, fromEntityMap);
 
     return escaped;
