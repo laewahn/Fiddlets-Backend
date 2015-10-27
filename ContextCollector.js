@@ -114,7 +114,10 @@
 
 		astVisitor.on("Function::Params", function(params, scope, defaultBehaviour) {
 			scope.params = params.map(function(p) {
-				return p.name;
+				return {
+					name: p.name,
+					loc: p.loc
+				};
 			});
 
 			defaultBehaviour();
@@ -255,63 +258,230 @@
 	ContextCollector.prototype.contextForLine = function(firstLine) {
 		var topScope = this.getScopeForLine(firstLine);
 
-		var source = this.source;
-		var lineLocations = [];
-
-		var unknowns = topScope.getUnknownVariables().slice();
+		var interestingLocations = [];	
+		var interestingIdentifiers = [];
 		
-		function getLineLocationsForLine(context, line, scope) {
-			var lineInfo = {};
-			var identifiers = context.getIdentifiersInLine(line);
-			
-			lineInfo.identifiers = identifiers;
-			lineInfo.line = line;
+		
+		var unknowns = topScope.getUnknownVariables().slice();
+		var interestingUnknowns = unknowns;
+		function locationsForLine(lineNo, context, scope, level) {
+			var identifiers = context.getIdentifiersInLine(lineNo);
 
-			identifiers.forEach(function(identifier){
-				if (scope.getLocationsForIdentifier(identifier) === undefined) {
-					return;
-				}
+			// console.log("identifiers in line " + lineNo + ": " + JSON.stringify(identifiers));
 
-				scope.getLocationsForIdentifier(identifier).forEach(function(location) {
-
-					var lineScope = context.getScopeForLine(location.start.line);
-					if (lineScope !== scope) {
-						var newScopeUnknowns = lineScope.getUnknownVariables();
-						newScopeUnknowns.forEach(function(id) {
-							if (lineScope.params.indexOf(id) === -1) {
-								unknowns.push(id);
-								scope.getUnknownVariables().push(id);
-							}
-						});
+			identifiers.forEach(function(id) {
+				var locations = scope.getLocationsForIdentifier(id);
+				locations.forEach(function(loc) {
+					if (loc.end.line === undefined) {
+						console.log("Undefined end for ", id);
 					}
-					
-					var locationAlreadyAdded = lineLocations.some(function(loc) {
-						return loc.start.line === location.start.line;
+
+					var isFirstLine = loc.start.line === firstLine;
+					var locAlreadyAdded = interestingLocations.some(function(l){
+						return loc.start.line === l.start.line;
 					});
-	
-					var scopeRange = scope.getRange();
-					var inScope = (scopeRange.start <= location.start.line && location.start.line <= scopeRange.end);
-					var inScopeButAfterFirstLine = inScope && 
-													 (location.start.line >= firstLine);
-	
-					var unknown = unknowns.indexOf(identifier) !== -1;
 
-					if (unknown || inScopeButAfterFirstLine) {
-						return;
-					}
-					
-					var inCurrentLine = location.start.line === line;
-					if (!(locationAlreadyAdded || inCurrentLine) || !inScope) {
-						lineLocations.push(location);
-						getLineLocationsForLine(context, location.start.line, scope);
+					if (!isFirstLine && !locAlreadyAdded) {
+						loc.level = level;
+						
+						var newScope = context.getScopeForLine(loc.start.line);
+						var nextLevel = level;
+						if (newScope !== scope) {
+							console.log(newScope.params);
+							var filteredInterestingUnknowns = newScope.getUnknownVariables().filter(function(u){
+								console.log("filter? ", u);
+								return !newScope.params.some(function(p) {
+									return p.name === u;
+								});
+							});
+							// interestingUnknowns = interestingUnknowns.concat(newScope.getUnknownVariables());
+							interestingUnknowns = interestingUnknowns.concat(filteredInterestingUnknowns);
+							nextLevel = level + 1;
+							console.log("New scope unknowns: ", filteredInterestingUnknowns);
+
+							interestingLocations.push( {start: {line: newScope.range.start}, end: {line: newScope.range.end}});
+						} else {
+							interestingLocations.push(loc);
+							
+						}
+
+						locationsForLine(loc.start.line, context, newScope, nextLevel);
 					}
 				});
+
+				var idAlreadyAdded = interestingIdentifiers.indexOf(id) !== -1;
+				if (!idAlreadyAdded) {
+					interestingIdentifiers.push(id);
+				}
 			});
 		}
 
-		getLineLocationsForLine(this, firstLine, topScope);
+		locationsForLine(firstLine, this, topScope, 0);
+		console.log("interestingIdentifiers: ", interestingIdentifiers);
+		// console.log("interestingLocations: ", interestingLocations.map(function(l) {return "" + l.start.line + " - " + l.end.line;}));
+
+		var locationsWithoutDuplicates = interestingLocations.filter(function(loc) {
+			var multiLine = loc.start.line !== loc.end.line;
+			if(multiLine) return true;
+
+			var multiLines = interestingLocations.filter(function(l){
+				return l.start.line !== l.end.line;
+			});
+
+			var duplicate = multiLines.some(function(multi) {
+				// return singleLine && (l.start.line <= loc.start.line && loc.end.line <= l.end.line);
+
+				return multi.start.line <= loc.start.line && multi.end.line >+ loc.end.line;
+			});
+
+			// console.log(loc, " is duplicate: " + duplicate);
+
+			return duplicate === false;
+		});
+
+		var locationsWithoutParams = locationsWithoutDuplicates.filter(function(loc) {
+			return !topScope.params.some(function(p){
+				return p.loc.start.line === loc.start.line;
+			});
+		});
+
 		
-		var declarationsForUnknowns = this.createDeclarationsForUnknowns(unknowns, topScope, firstLine);
+		var locationsBeforeThisLine = locationsWithoutParams.filter(function(l) {
+			return l.start.line < firstLine;
+		}).sort(function(a,b) {
+			return a.start.line - b.start.line;
+		});
+
+
+		console.log("locationsBeforeThisLine: ", locationsBeforeThisLine.map(function(l) {return l.start.line;}));
+		var context = this;
+		var contextIdentifiers = context.getIdentifiersInLine(firstLine);
+
+		function addToContextIdentifiersIfNotAlreadyThere(id) { 
+			if (contextIdentifiers.indexOf(id) === -1) {
+				contextIdentifiers.push(id); 
+			}
+		}
+		locationsBeforeThisLine.forEach(function(loc) {
+			var currentLine;
+			for(currentLine = loc.start.line; currentLine <= loc.end.line; currentLine++) {
+				var identifiersInLine = context.getIdentifiersInLine(currentLine);
+				identifiersInLine.forEach(addToContextIdentifiersIfNotAlreadyThere);
+			}
+		});
+
+		
+		var filteredUnknowns = interestingUnknowns.filter(function(unknown) {
+			return contextIdentifiers.indexOf(unknown) !== -1;
+		});
+
+		console.log("contextIdentifiers: ", contextIdentifiers);
+		console.log("unknowns: ", unknowns);
+		console.log("interestingUnknowns: ", interestingUnknowns);
+		console.log("filteredUnknowns: ", filteredUnknowns);
+
+		var source = this.source;
+		var theContextLines = locationsBeforeThisLine.map(function(loc) {
+
+			if (loc.start.line === loc.end.line) {
+				 return source.getLine(loc.start.line).trim();
+			} else {
+				var indentation = "";
+				var level;
+				for(level = 0; level < loc.level; level++) {
+					indentation += "\t";
+				}
+
+				var current;
+				var multiLines = [];
+				for(current = loc.start.line; current <= loc.end.line; current++) {
+					multiLines.push(indentIfNotFirstOrLast(source.getLine(current).trim(), current, loc.start.line, loc.end.line));
+				}
+				return multiLines.join("\n");
+			}
+		});
+
+		console.log(theContextLines.join("\n"));
+
+		
+
+		
+		var lineLocations = [];
+
+		// var unknowns = topScope.getUnknownVariables().slice();
+		// console.log(topScope);
+		// unknowns = [];
+
+		// function getLineLocationsForLine(context, line, scope) {
+
+		// 	var lineInfo = {};
+		// 	var identifiers = context.getIdentifiersInLine(line);
+
+		// 	lineInfo.identifiers = identifiers;
+		// 	lineInfo.line = line;
+		// 	// console.log("Identifiers: ", identifiers);
+		// 	identifiers.forEach(function(identifier){
+		// 		if (scope.getLocationsForIdentifier(identifier) === undefined) {
+		// 			return;
+		// 		}
+		// 		// console.log(identifier);
+
+		// 		scope.getLocationsForIdentifier(identifier).forEach(function(location) {
+					
+		// 			var lineScope = context.getScopeForLine(location.start.line);
+		// 			if (lineScope !== scope) {
+		// 				var newScopeUnknowns = lineScope.getUnknownVariables();
+		// 				newScopeUnknowns.forEach(function(id) {
+		// 					if (lineScope.params.map(function(p) {return p.name;}).indexOf(id) === -1) {
+		// 						unknowns.push(id);
+		// 						scope.getUnknownVariables().push(id);
+		// 					}
+		// 				});
+		// 			}
+					
+		// 			var locationAlreadyAdded = lineLocations.some(function(loc) {
+		// 				return loc.start.line === location.start.line;
+		// 			});
+		// 			if (identifier === "entityMap") {
+		// 				// console.log("Found entityMap");
+		// 				// console.log(location);
+		// 				// console.log("Already added? " + locationAlreadyAdded);
+		// 			}
+					
+	
+		// 			var scopeRange = scope.getRange();
+		// 			var inScope = (scopeRange.start <= location.start.line && location.start.line <= scopeRange.end);
+		// 			// console.log("In scope: ", inScope);
+		// 			var inScopeButAfterFirstLine = inScope && 
+		// 											 (location.start.line >= firstLine);
+	
+		// 			var unknown = unknowns.indexOf(identifier) !== -1;
+		// 			// console.log("unknowns: ", unknowns);
+		// 			// console.log("Params: " + scope.params);
+
+		// 			var isParam = scope.params.map(function(p) {return p.name;}).indexOf(identifier) !== -1;
+		// 			if (isParam && !unknown) {
+		// 				unknowns.push(identifier);
+		// 			}
+
+		// 			if (unknown || inScopeButAfterFirstLine || isParam) {
+		// 				return;
+		// 			}
+					
+		// 			var inCurrentLine = location.start.line === line;
+		// 			if (!(locationAlreadyAdded || inCurrentLine) || !inScope) {
+		// 				lineLocations.push(location);
+		// 				getLineLocationsForLine(context, location.start.line, scope);
+		// 			}
+		// 		});
+		// 	});
+		// }
+
+		// getLineLocationsForLine(this, firstLine, topScope);
+		// console.log("unknowns: ", unknowns);
+		// var declarationsForUnknowns = this.createDeclarationsForUnknowns(unknowns, topScope, firstLine);
+		var declarationsForUnknowns = this.createDeclarationsForUnknowns(filteredUnknowns, topScope, firstLine);
+		console.log("declarations for unknowns ", declarationsForUnknowns);
 
 		function indentIfNotFirstOrLast(line, lineNo, firstLineNo, lastLineNo) {
 			if (lineNo !== firstLineNo && lineNo !== lastLineNo) {
@@ -334,16 +504,17 @@
 			
 		});
 
-		return declarationsForUnknowns.concat(contextLines).join("\n");
+		return declarationsForUnknowns.concat(theContextLines).join("\n");
 	};
 
 	ContextCollector.prototype.createDeclarationsForUnknowns = function(identifiers, scope, line) {
 		var declarations = [];
 		identifiers.forEach(function(identifier) {
-			if (scope.getUnknownVariables().indexOf(identifier) !== -1) {
+			console.log("Creating declaration for " + identifier);
+			// if (scope.getUnknownVariables().indexOf(identifier) !== -1) {
 				var declaration = generateDeclarationWithTag(identifier, "<#undefined:" + identifier + ":" + line + "#>");
 				declarations.push(declaration);
-			}
+			// }
 		});
 
 		return declarations;

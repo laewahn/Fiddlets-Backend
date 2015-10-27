@@ -24,6 +24,14 @@ describe("mustache.js", function() {
 	var source = fs.readFileSync("spec/mustache.js", "utf8");
 	// contextCollectorAPI.setDebug(true);
 
+	it("should not include unknown variables when they are not referred to in any of the lines", function() {
+		var ContextCollector = contextCollectorAPI.ContextCollector;
+		var collector = new ContextCollector(source);
+
+		var context = collector.contextForLine(30, source);
+		expect(context).toEqual("");
+	});
+
 	it("should return the context for the first task", function(){
 		var ContextCollector = contextCollectorAPI.ContextCollector;
 		var collector = new ContextCollector(source);
@@ -43,8 +51,8 @@ describe("mustache.js", function() {
 		expect(fromEntityMapScope.getUnknownVariables()).toEqual(["s" ,"entityMap"]);
 
 		var context = collector.contextForLine(66, source);
-		var expectedContext = "var html = <#undefined:html:66#>;\n" +
-    						   "var entityMap = <#undefined:entityMap:66#>;\n" +
+		var expectedContext =  "var html = <#undefined:html:66#>;\n" +
+							   "var entityMap = <#undefined:entityMap:66#>;\n" +
     						   "var htmlMetaCharacters = /<|>/;\n" +
     						   "function fromEntityMap (s) {\n" +
     						   "\tvar replacement = entityMap[s];\n" +
