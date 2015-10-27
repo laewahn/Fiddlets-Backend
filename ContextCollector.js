@@ -285,9 +285,6 @@
 		var source = this.source;
 		var lineLocations = [];
 
-		// scope.resolveUnknowns();
-
-		// var identifiers = this.getIdentifiersInLine(firstLine);
 		var unknowns = topScope.getUnknownVariables().slice();
 		
 		function getLineLocationsForLine(context, line, scope) {
@@ -329,7 +326,7 @@
 	
 					var unknown = unknowns.indexOf(identifier) !== -1;
 
-					if (unknown || inScopeButAfterFirstLine/* || isParam*/) {
+					if (unknown || inScopeButAfterFirstLine) {
 						return;
 					}
 					
@@ -344,10 +341,6 @@
 
 		getLineLocationsForLine(this, firstLine, topScope);
 		
-		// console.log(lineLocations.map(function(ll) {
-		// 	return ll.start.line;
-		// }));
-
 		var declarationsForUnknowns = this.createDeclarationsForUnknowns(unknowns, topScope, firstLine);
 
 		function indentIfNotFirstOrLast(line, lineNo, firstLineNo, lastLineNo) {

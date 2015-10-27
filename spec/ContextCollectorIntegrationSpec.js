@@ -35,22 +35,14 @@ describe("mustache.js", function() {
 	it("should return the context for the second task", function(){
 		var ContextCollector = contextCollectorAPI.ContextCollector;
 		var collector = new ContextCollector(source);
-		// console.log(collector.getScopeForLine);
 
 		var task2Scope = collector.getScopeForLine(66);
-		// task2Scope.resolveUnknowns();
-
-		// console.log(task2Scope.getLocals());
-		// console.log(task2Scope.getLocationsForIdentifier("fromEntityMap"));
-
+	
 		var fromEntityMapScope = task2Scope.getContainedScope(0);
 		expect(fromEntityMapScope.getName()).toEqual("fromEntityMap");
 		expect(fromEntityMapScope.getUnknownVariables()).toEqual(["s" ,"entityMap"]);
 
-		// fail("Problem here is that the entityMap is not noted as unknown by the escapeHTML scope.");
-
 		var context = collector.contextForLine(66, source);
-		// console.log(context);
 		var expectedContext = "var html = <#undefined:html:66#>;\n" +
     						   "var entityMap = <#undefined:entityMap:66#>;\n" +
     						   "var htmlMetaCharacters = /<|>/;\n" +
