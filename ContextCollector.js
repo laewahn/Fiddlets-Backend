@@ -261,13 +261,12 @@
 		var interestingLocations = [];	
 		var interestingIdentifiers = [];
 		
-		
 		var unknowns = topScope.getUnknownVariables().slice();
 		var interestingUnknowns = unknowns;
 		function locationsForLine(lineNo, context, scope, level) {
 			var identifiers = context.getIdentifiersInLine(lineNo);
 
-			// console.log("identifiers in line " + lineNo + ": " + JSON.stringify(identifiers));
+			console.log("identifiers in line " + lineNo + ": " + JSON.stringify(identifiers));
 
 			identifiers.forEach(function(id) {
 				var locations = scope.getLocationsForIdentifier(id);
@@ -294,18 +293,18 @@
 									return p.name === u;
 								});
 							});
-							// interestingUnknowns = interestingUnknowns.concat(newScope.getUnknownVariables());
+							
 							interestingUnknowns = interestingUnknowns.concat(filteredInterestingUnknowns);
 							nextLevel = level + 1;
 							console.log("New scope unknowns: ", filteredInterestingUnknowns);
-
 							interestingLocations.push( {start: {line: newScope.range.start}, end: {line: newScope.range.end}});
 						} else {
-							interestingLocations.push(loc);
-							
+							interestingLocations.push(loc);	
 						}
 
-						locationsForLine(loc.start.line, context, newScope, nextLevel);
+						if (loc.start.line <= firstLine) {
+							locationsForLine(loc.start.line, context, newScope, nextLevel);
+						}
 					}
 				});
 
@@ -317,8 +316,7 @@
 		}
 
 		locationsForLine(firstLine, this, topScope, 0);
-		console.log("interestingIdentifiers: ", interestingIdentifiers);
-		// console.log("interestingLocations: ", interestingLocations.map(function(l) {return "" + l.start.line + " - " + l.end.line;}));
+		console.log("interestingLocations: ", interestingLocations.map(function(l) {return "" + l.start.line + " - " + l.end.line;}));
 
 		var locationsWithoutDuplicates = interestingLocations.filter(function(loc) {
 			var multiLine = loc.start.line !== loc.end.line;
@@ -329,8 +327,6 @@
 			});
 
 			var duplicate = multiLines.some(function(multi) {
-				// return singleLine && (l.start.line <= loc.start.line && loc.end.line <= l.end.line);
-
 				return multi.start.line <= loc.start.line && multi.end.line >+ loc.end.line;
 			});
 

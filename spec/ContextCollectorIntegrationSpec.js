@@ -30,6 +30,9 @@ describe("mustache.js", function() {
 
 		var context = collector.contextForLine(30, source);
 		expect(context).toEqual("");
+
+		context = collector.contextForLine(31, source);
+		expect(context).toEqual("");
 	});
 
 	it("should return the context for the first task", function(){
