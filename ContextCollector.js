@@ -47,7 +47,7 @@
 		var RESERVED_IDENTIFIERS = ["console", "Object", "prototype", "toString", "hasOwnProperty", "replace", "String", "split", "Error"];
 
 		var astVisitor = new ASTApi(ast, scope);
-		astVisitor.setDebug(true);
+		// astVisitor.setDebug(true);
 
 		astVisitor.on("Program", function(program, scope, defaultBehaviour) {
 			scope.range = {start: program.loc.start.line, end: program.loc.end.line};
