@@ -32,7 +32,7 @@
 			/*jslint evil: true */
 			eval(this.source);
 		} catch (error) {
-			throw new Error(error.stack);
+			throw new Error(error.stack.split("\n").slice(0,2).join("\n"));
 		}
 		
 		this._instrumentCode();
