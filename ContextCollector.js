@@ -130,7 +130,7 @@
 		});
 
 		astVisitor.on("Property", function(prop) {
-			console.log("Ignoring ", prop.key.name);
+			// console.log("Ignoring ", prop.key.name);
 		});
 
 		astVisitor.trace();
@@ -277,13 +277,13 @@
 		function locationsForLine(lineNo, context, scope, level) {
 			var identifiers = context.getIdentifiersInLine(lineNo);
 
-			console.log("identifiers in line " + lineNo + ": " + JSON.stringify(identifiers));
+			// console.log("identifiers in line " + lineNo + ": " + JSON.stringify(identifiers));
 
 			identifiers.forEach(function(id) {
 				var locations = scope.getLocationsForIdentifier(id);
 				locations.forEach(function(loc) {
 					if (loc.end.line === undefined) {
-						console.log("Undefined end for ", id);
+						// console.log("Undefined end for ", id);
 					}
 
 					var isFirstLine = loc.start.line === firstLine;
@@ -297,9 +297,9 @@
 						var newScope = context.getScopeForLine(loc.start.line);
 						var nextLevel = level;
 						if (newScope !== scope) {
-							console.log(newScope.params);
+							// console.log(newScope.params);
 							var filteredInterestingUnknowns = newScope.getUnknownVariables().filter(function(u){
-								console.log("filter? ", u);
+								// console.log("filter? ", u);
 								return !newScope.params.some(function(p) {
 									return p.name === u;
 								});
@@ -307,7 +307,7 @@
 							
 							interestingUnknowns = interestingUnknowns.concat(filteredInterestingUnknowns);
 							nextLevel = level + 1;
-							console.log("New scope unknowns: ", filteredInterestingUnknowns);
+							// console.log("New scope unknowns: ", filteredInterestingUnknowns);
 							interestingLocations.push( {start: {line: newScope.range.start}, end: {line: newScope.range.end}});
 						} else {
 							interestingLocations.push(loc);	
@@ -327,7 +327,7 @@
 		}
 
 		locationsForLine(firstLine, this, topScope, 0);
-		console.log("interestingLocations: ", interestingLocations.map(function(l) {return "" + l.start.line + " - " + l.end.line;}));
+		// console.log("interestingLocations: ", interestingLocations.map(function(l) {return "" + l.start.line + " - " + l.end.line;}));
 
 		var locationsWithoutDuplicates = interestingLocations.filter(function(loc) {
 			var multiLine = loc.start.line !== loc.end.line;
@@ -348,7 +348,7 @@
 
 		var locationsWithoutParams = locationsWithoutDuplicates.filter(function(loc) {
 			if (topScope.params === undefined) {
-				console.log(topScope);
+				// console.log(topScope);
 			}
 			return !topScope.params.some(function(p){
 				return p.loc.start.line === loc.start.line;
@@ -363,7 +363,7 @@
 		});
 
 
-		console.log("locationsBeforeThisLine: ", locationsBeforeThisLine.map(function(l) {return l.start.line;}));
+		// console.log("locationsBeforeThisLine: ", locationsBeforeThisLine.map(function(l) {return l.start.line;}));
 		var context = this;
 		var contextIdentifiers = context.getIdentifiersInLine(firstLine);
 
@@ -385,10 +385,10 @@
 			return contextIdentifiers.indexOf(unknown) !== -1;
 		});
 
-		console.log("contextIdentifiers: ", contextIdentifiers);
-		console.log("unknowns: ", unknowns);
-		console.log("interestingUnknowns: ", interestingUnknowns);
-		console.log("filteredUnknowns: ", filteredUnknowns);
+		// console.log("contextIdentifiers: ", contextIdentifiers);
+		// console.log("unknowns: ", unknowns);
+		// console.log("interestingUnknowns: ", interestingUnknowns);
+		// console.log("filteredUnknowns: ", filteredUnknowns);
 
 		var source = this.source;
 		var theContextLines = locationsBeforeThisLine.map(function(loc) {
@@ -411,7 +411,7 @@
 			}
 		});
 
-		console.log(theContextLines.join("\n"));
+		// console.log(theContextLines.join("\n"));
 
 		
 
@@ -491,7 +491,7 @@
 		// console.log("unknowns: ", unknowns);
 		// var declarationsForUnknowns = this.createDeclarationsForUnknowns(unknowns, topScope, firstLine);
 		var declarationsForUnknowns = this.createDeclarationsForUnknowns(filteredUnknowns, topScope, firstLine);
-		console.log("declarations for unknowns ", declarationsForUnknowns);
+		// console.log("declarations for unknowns ", declarationsForUnknowns);
 
 		function indentIfNotFirstOrLast(line, lineNo, firstLineNo, lastLineNo) {
 			if (lineNo !== firstLineNo && lineNo !== lastLineNo) {
@@ -520,7 +520,7 @@
 	ContextCollector.prototype.createDeclarationsForUnknowns = function(identifiers, scope, line) {
 		var declarations = [];
 		identifiers.forEach(function(identifier) {
-			console.log("Creating declaration for " + identifier);
+			// console.log("Creating declaration for " + identifier);
 			// if (scope.getUnknownVariables().indexOf(identifier) !== -1) {
 				var declaration = generateDeclarationWithTag(identifier, "<#undefined:" + identifier + ":" + line + "#>");
 				declarations.push(declaration);
