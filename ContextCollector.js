@@ -44,7 +44,7 @@
 		var ast = esprima.parse(source, {loc: true});
 		var scope = new Scope("__global");
 
-		var RESERVED_IDENTIFIERS = ["console", "Object", "prototype", "toString", "hasOwnProperty", "replace", "String", "split", "Error", "JSON", "parse", "map", "splice", "length", "RegExp"];
+		var RESERVED_IDENTIFIERS = ["console", "Object", "prototype", "toString", "hasOwnProperty", "replace", "String", "split", "Error", "JSON", "parse", "map", "splice", "length", "RegExp", "readFileSync", "Buffer"];
 
 		var astVisitor = new ASTApi(ast, scope);
 		astVisitor.setDebug(true);
