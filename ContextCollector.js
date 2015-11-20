@@ -7,7 +7,6 @@
 	var esprima = require("esprima");
 
 	var ASTApi = require("./ASTApi");
-	var Context = require("./Context");
 	var IdentifierCollector = require("./IdentifierCollector");
 	var IdentifierMapping = require("./IdentifierMapping");
 	
@@ -23,22 +22,6 @@
 			this.splice(elementIdx, 1);
 		}
 	};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 	exports.scopeMappingForCode = function(source) {
 		var ast = esprima.parse(source, {loc: true});
@@ -129,9 +112,7 @@
 			defaultBehaviour();
 		});
 
-		astVisitor.on("Property", function(prop) {
-			// console.log("Ignoring ", prop.key.name);
-		});
+		astVisitor.on("Property", function() {});
 
 		astVisitor.trace();
 
@@ -277,14 +258,9 @@
 		function locationsForLine(lineNo, context, scope, level) {
 			var identifiers = context.getIdentifiersInLine(lineNo);
 
-			// console.log("identifiers in line " + lineNo + ": " + JSON.stringify(identifiers));
-
 			identifiers.forEach(function(id) {
 				var locations = scope.getLocationsForIdentifier(id);
 				locations.forEach(function(loc) {
-					if (loc.end.line === undefined) {
-						// console.log("Undefined end for ", id);
-					}
 
 					var isFirstLine = loc.start.line === firstLine;
 					var locAlreadyAdded = interestingLocations.some(function(l){
@@ -297,9 +273,7 @@
 						var newScope = context.getScopeForLine(loc.start.line);
 						var nextLevel = level;
 						if (newScope !== scope) {
-							// console.log(newScope.params);
 							var filteredInterestingUnknowns = newScope.getUnknownVariables().filter(function(u){
-								// console.log("filter? ", u);
 								return !newScope.params.some(function(p) {
 									return p.name === u;
 								});
@@ -307,7 +281,6 @@
 							
 							interestingUnknowns = interestingUnknowns.concat(filteredInterestingUnknowns);
 							nextLevel = level + 1;
-							// console.log("New scope unknowns: ", filteredInterestingUnknowns);
 							interestingLocations.push( {start: {line: newScope.range.start}, end: {line: newScope.range.end}});
 						} else {
 							interestingLocations.push(loc);	
@@ -327,7 +300,6 @@
 		}
 
 		locationsForLine(firstLine, this, topScope, 0);
-		// console.log("interestingLocations: ", interestingLocations.map(function(l) {return "" + l.start.line + " - " + l.end.line;}));
 
 		var locationsWithoutDuplicates = interestingLocations.filter(function(loc) {
 			var multiLine = loc.start.line !== loc.end.line;
@@ -341,15 +313,10 @@
 				return multi.start.line <= loc.start.line && multi.end.line >+ loc.end.line;
 			});
 
-			// console.log(loc, " is duplicate: " + duplicate);
-
 			return duplicate === false;
 		});
 
 		var locationsWithoutParams = locationsWithoutDuplicates.filter(function(loc) {
-			if (topScope.params === undefined) {
-				// console.log(topScope);
-			}
 			return !topScope.params.some(function(p){
 				return p.loc.start.line === loc.start.line;
 			});
@@ -362,8 +329,6 @@
 			return a.start.line - b.start.line;
 		});
 
-
-		// console.log("locationsBeforeThisLine: ", locationsBeforeThisLine.map(function(l) {return l.start.line;}));
 		var context = this;
 		var contextIdentifiers = context.getIdentifiersInLine(firstLine);
 
@@ -385,11 +350,6 @@
 			return contextIdentifiers.indexOf(unknown) !== -1;
 		});
 
-		// console.log("contextIdentifiers: ", contextIdentifiers);
-		// console.log("unknowns: ", unknowns);
-		// console.log("interestingUnknowns: ", interestingUnknowns);
-		// console.log("filteredUnknowns: ", filteredUnknowns);
-
 		var source = this.source;
 		var theContextLines = locationsBeforeThisLine.map(function(loc) {
 
@@ -404,115 +364,25 @@
 
 				var current;
 				var multiLines = [];
+
+				var indentIfNotFirstOrLast = function (line, lineNo, firstLineNo, lastLineNo) {
+
+					if (lineNo !== firstLineNo && lineNo !== lastLineNo) {
+						line = "\t" + line;
+					}
+
+					return line;
+				};
+
 				for(current = loc.start.line; current <= loc.end.line; current++) {
 					multiLines.push(indentIfNotFirstOrLast(source.getLine(current).trim(), current, loc.start.line, loc.end.line));
 				}
+
 				return multiLines.join("\n");
 			}
 		});
 
-		// console.log(theContextLines.join("\n"));
-
-		
-
-		
-		var lineLocations = [];
-
-		// var unknowns = topScope.getUnknownVariables().slice();
-		// console.log(topScope);
-		// unknowns = [];
-
-		// function getLineLocationsForLine(context, line, scope) {
-
-		// 	var lineInfo = {};
-		// 	var identifiers = context.getIdentifiersInLine(line);
-
-		// 	lineInfo.identifiers = identifiers;
-		// 	lineInfo.line = line;
-		// 	// console.log("Identifiers: ", identifiers);
-		// 	identifiers.forEach(function(identifier){
-		// 		if (scope.getLocationsForIdentifier(identifier) === undefined) {
-		// 			return;
-		// 		}
-		// 		// console.log(identifier);
-
-		// 		scope.getLocationsForIdentifier(identifier).forEach(function(location) {
-					
-		// 			var lineScope = context.getScopeForLine(location.start.line);
-		// 			if (lineScope !== scope) {
-		// 				var newScopeUnknowns = lineScope.getUnknownVariables();
-		// 				newScopeUnknowns.forEach(function(id) {
-		// 					if (lineScope.params.map(function(p) {return p.name;}).indexOf(id) === -1) {
-		// 						unknowns.push(id);
-		// 						scope.getUnknownVariables().push(id);
-		// 					}
-		// 				});
-		// 			}
-					
-		// 			var locationAlreadyAdded = lineLocations.some(function(loc) {
-		// 				return loc.start.line === location.start.line;
-		// 			});
-		// 			if (identifier === "entityMap") {
-		// 				// console.log("Found entityMap");
-		// 				// console.log(location);
-		// 				// console.log("Already added? " + locationAlreadyAdded);
-		// 			}
-					
-	
-		// 			var scopeRange = scope.getRange();
-		// 			var inScope = (scopeRange.start <= location.start.line && location.start.line <= scopeRange.end);
-		// 			// console.log("In scope: ", inScope);
-		// 			var inScopeButAfterFirstLine = inScope && 
-		// 											 (location.start.line >= firstLine);
-	
-		// 			var unknown = unknowns.indexOf(identifier) !== -1;
-		// 			// console.log("unknowns: ", unknowns);
-		// 			// console.log("Params: " + scope.params);
-
-		// 			var isParam = scope.params.map(function(p) {return p.name;}).indexOf(identifier) !== -1;
-		// 			if (isParam && !unknown) {
-		// 				unknowns.push(identifier);
-		// 			}
-
-		// 			if (unknown || inScopeButAfterFirstLine || isParam) {
-		// 				return;
-		// 			}
-					
-		// 			var inCurrentLine = location.start.line === line;
-		// 			if (!(locationAlreadyAdded || inCurrentLine) || !inScope) {
-		// 				lineLocations.push(location);
-		// 				getLineLocationsForLine(context, location.start.line, scope);
-		// 			}
-		// 		});
-		// 	});
-		// }
-
-		// getLineLocationsForLine(this, firstLine, topScope);
-		// console.log("unknowns: ", unknowns);
-		// var declarationsForUnknowns = this.createDeclarationsForUnknowns(unknowns, topScope, firstLine);
 		var declarationsForUnknowns = this.createDeclarationsForUnknowns(filteredUnknowns, topScope, firstLine);
-		// console.log("declarations for unknowns ", declarationsForUnknowns);
-
-		function indentIfNotFirstOrLast(line, lineNo, firstLineNo, lastLineNo) {
-			if (lineNo !== firstLineNo && lineNo !== lastLineNo) {
-				return "\t" + line;
-			}
-			return line;
-		}
-
-		var contextLines = lineLocations.map(function(loc) {
-			if (loc.start.line === loc.end.line) {
-				return source.getLine(loc.start.line).trim();
-			} else {
-				var current;
-				var multiLines = [];
-				for(current = loc.start.line; current <= loc.end.line; current++) {
-					multiLines.push(indentIfNotFirstOrLast(source.getLine(current).trim(), current, loc.start.line, loc.end.line));
-				}
-				return multiLines.join("\n");
-			}
-			
-		});
 
 		return declarationsForUnknowns.concat(theContextLines).join("\n");
 	};
@@ -520,39 +390,12 @@
 	ContextCollector.prototype.createDeclarationsForUnknowns = function(identifiers, scope, line) {
 		var declarations = [];
 		identifiers.forEach(function(identifier) {
-			// console.log("Creating declaration for " + identifier);
-			// if (scope.getUnknownVariables().indexOf(identifier) !== -1) {
-				var declaration = generateDeclarationWithTag(identifier, "<#undefined:" + identifier + ":" + line + "#>");
-				declarations.push(declaration);
-			// }
+			var declaration = generateDeclarationWithTag(identifier, "<#undefined:" + identifier + ":" + line + "#>");
+			declarations.push(declaration);
 		});
 
 		return declarations;
 	};
-
-	exports.ContextCollector = ContextCollector;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 	function generateDeclarationWithTag(variable, tag) {
 		var declarationAST = {
@@ -575,6 +418,8 @@
        	var escodegen = require("escodegen");
         return escodegen.generate(declarationAST);
 	}
+
+	exports.ContextCollector = ContextCollector;
 
 	function SourceCode(source) {
 		this.source = source;
