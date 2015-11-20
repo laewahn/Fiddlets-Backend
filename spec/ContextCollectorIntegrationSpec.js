@@ -8,7 +8,7 @@ var contextCollectorAPI = require("../ContextCollector");
 	
 
 xdescribe("The study sample code", function() {		
-	var source = fs.readFileSync("spec/sampleSource.js", "utf8");
+	var source = fs.readFileSync("spec/source/sampleSource.js", "utf8");
 
 	it("should create a string representation of the context for the easiest line", function() {
 		var ContextCollector = contextCollectorAPI.ContextCollector;
@@ -21,7 +21,7 @@ xdescribe("The study sample code", function() {
 });
 
 xdescribe("mustache.js", function() {
-	var source = fs.readFileSync("spec/mustache.js", "utf8");
+	var source = fs.readFileSync("spec/source/mustache.js", "utf8");
 	// contextCollectorAPI.setDebug(true);
 
 	it("should not include unknown variables when they are not referred to in any of the lines", function() {
@@ -86,7 +86,7 @@ xdescribe("mustache.js", function() {
 
 describe("weather", function() {
 	it("should not fail", function() {
-		var source = fs.readFileSync("spec/weather.js", "utf8");
+		var source = fs.readFileSync("spec/source/weather.js", "utf8");
 
 		var ContextCollector = contextCollectorAPI.ContextCollector;
 		var collector = new ContextCollector(source);

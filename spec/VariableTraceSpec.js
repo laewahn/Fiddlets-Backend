@@ -7,7 +7,7 @@ describe("The variable trace", function() {
 	var VariableTrace = require("../VariableTrace.js");
 	var fs = require("fs");
 	
-	var testTrace = new VariableTrace(fs.readFileSync("./spec/variableTraceExampleCode.js"));
+	var testTrace = new VariableTrace(fs.readFileSync("./spec/source/variableTraceExampleCode.js"));
 	testTrace.runCode();
 
 	it("should find all variable assignments in the code", function() {
@@ -58,7 +58,6 @@ describe("The variable trace", function() {
 			testTrace.runCode();
 			fail("should thrown error.");
 		} catch(error) {
-			console.log(error);
 			expect(error.stack.split("\n")[0]).toEqual("Error: ReferenceError: bar is not defined");
 		}
 		

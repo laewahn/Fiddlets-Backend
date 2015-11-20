@@ -4,7 +4,7 @@
 "use strict";
 
 var fs = require("fs");
-var testSource = fs.readFileSync("spec/testSource.js", "utf8");
+var testSource = fs.readFileSync("spec/source/testSource.js", "utf8");
 var contextCollectAPI = require("../ContextCollector.js");
 
 xdescribe("The test spec", function() {
@@ -321,7 +321,7 @@ xdescribe("The line mapping", function() {
 		// context.lineFor("bla").withScopeOfLine(12);
 
 describe("mustache.js", function() {
-	testSource = fs.readFileSync("./spec/mustache.js", "utf8");
+	testSource = fs.readFileSync("./spec/source/mustache.js", "utf8");
 	 it("should not crash", function() {
 	 	expect(testSource).toBeDefined();
 	 	// var testContext = contextCollectAPI.getIdentifierMapping(testSource);

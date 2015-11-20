@@ -81,7 +81,7 @@ describe("VariableTraceDomain", function() {
 
 		xit("should not fail.", function() {
 			var fs = require("fs");
-			var code = fs.readFileSync("./spec/fail.js");
+			var code = fs.readFileSync("./spec/source/fail.js");
 			var trace = VariableTraceDomain.getTraceForCode(code);
 			console.log(trace);
 			var traceObject = JSON.parse(trace, reviver);

@@ -8,7 +8,7 @@ describe("The source code mapping", function() {
 	var fs = require("fs");
 	var SourceCodeMapping = require("../ContextCollector").SourceCode;
 	
-	var source = fs.readFileSync("spec/sampleSource.js", "utf8");
+	var source = fs.readFileSync("spec/source/sampleSource.js", "utf8");
 		
 	it("should be initialized with source code", function() {
 		var testMapping = new SourceCodeMapping(source);
