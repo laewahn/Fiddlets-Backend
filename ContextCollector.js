@@ -9,7 +9,8 @@
 	var ASTApi = require("./ASTApi");
 	var IdentifierCollector = require("./IdentifierCollector");
 	var IdentifierMapping = require("./IdentifierMapping");
-	
+	var SourceCode = require("./SourceCode");
+
 	var debug = false;
 
 	exports.setDebug = function(debugFlag) {
@@ -345,7 +346,6 @@
 			}
 		});
 
-		
 		var filteredUnknowns = interestingUnknowns.filter(function(unknown) {
 			return contextIdentifiers.indexOf(unknown) !== -1;
 		});
@@ -419,28 +419,6 @@
         return escodegen.generate(declarationAST);
 	}
 
-	exports.ContextCollector = ContextCollector;
-
-	function SourceCode(source) {
-		this.source = source;
-		this.lines = this.source.split("\n");
-	}
-
-	SourceCode.prototype.source = undefined;
-	SourceCode.prototype.lines = undefined;
-
-	SourceCode.prototype.getLine = function(lineNr) {
-		return this.lines[lineNr - 1];
-	};
-
-	SourceCode.prototype.identifiersInLine = function(lineNr) {
-		var identifierMapping = getIdentifierMapping(this.source);
-		return identifierMapping.identifiersForLine(lineNr);
-	};
-
-	exports.SourceCode = SourceCode;
-	exports.getIdentifierMapping = getIdentifierMapping;
-
 	function getIdentifierMapping(source) {
 		var ast = esprima.parse(source, {loc: true});
 
@@ -487,8 +465,7 @@
 		return identifierMapping.trace();
 	}
 
-	
-
-	
+	exports.ContextCollector = ContextCollector;
+	exports.getIdentifierMapping = getIdentifierMapping;
 
 })();

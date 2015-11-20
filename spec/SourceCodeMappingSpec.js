@@ -6,7 +6,7 @@
 describe("The source code mapping", function() {
 	
 	var fs = require("fs");
-	var SourceCodeMapping = require("../ContextCollector").SourceCode;
+	var SourceCodeMapping = require("../SourceCode");
 	
 	var source = fs.readFileSync("spec/source/sampleSource.js", "utf8");
 		
@@ -14,11 +14,5 @@ describe("The source code mapping", function() {
 		var testMapping = new SourceCodeMapping(source);
 
 		expect(testMapping).toBeDefined();
-	});
-
-	it("should allow to access lists of identifiers by their lines", function() {
-		var testMapping = new SourceCodeMapping(source);
-
-		expect(testMapping.identifiersInLine(23)).toEqual(["csvHeader", "weatherInfoCSV"]);
 	});
 });
