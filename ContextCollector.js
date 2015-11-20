@@ -359,7 +359,7 @@
 		astVisitor.trace();
 
 		return scope;
-	};
+	}
 
 	exports.ContextCollector = ContextCollector;
 	exports.getIdentifierMapping = getIdentifierMapping;
